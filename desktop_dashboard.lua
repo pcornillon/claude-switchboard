@@ -30,7 +30,7 @@
      2026-07-27; see PRE_CONVERSION/STATUS.md.
   4. In  ~/.hammerspoon/init.lua , point Lua's search path at the clone:
         package.path = package.path .. ";" ..
-          os.getenv("HOME") .. "/Git_Repos/Desktop_Dashboard/?.lua"
+          os.getenv("HOME") .. "/Git_Repos/claude-switchboard/?.lua"
         local dd = require("desktop_dashboard")
         dd.start()
      (A symlink into ~/.hammerspoon works too — it is still one file.)
@@ -75,7 +75,7 @@
 ============================================================]]--
 
 local M = {}
-M.version = "v64 (a session with no terminal is Claude Code's own machinery, not a line, 2026-08-07)"
+M.version = "v65 (the spinner is read by exclusion — Claude Code changed it and the yellow dot died, 2026-08-12)"
 
 -- ============================ CONFIG ============================
 
@@ -156,6 +156,23 @@ M.claudeDotSeconds = 3           -- how often titles are read (async, never bloc
 M.taskTimeout      = 20
 M.claudeStateDir   = os.getenv("HOME") .. "/.hammerspoon/claude_state"
 M.claudeHookMaxAgeHours = 12     -- ignore state files older than this
+
+-- WHICH GLYPH MEANS "computing" (D91). Claude Code leads a title's task text
+-- with a marker: an animated spinner while it computes, ✳ when it is not (D17 —
+-- a session blocked on a question shows the same ✳ as one that has finished,
+-- which is why red has to come from the hooks).
+--
+-- The test is by EXCLUSION rather than by naming the spinner, because the
+-- spinner has already changed once underneath us: it was a Braille frame
+-- (U+2800–U+28FF) and is now ◑ U+25D1, and the yellow dot had been dead for
+-- an unknown number of weeks before anyone noticed (2026-08-12). A codepoint
+-- range for the spinner fails silently and permanently on the next change; a
+-- list of what is NOT the spinner fails only if Claude Code adds a second
+-- resting marker, which is both rarer and visible the moment it happens.
+M.claudeIdleGlyphs = { [0x2733] = true }   -- ✳ — a session at rest
+-- Below this codepoint it is task text, not a marker: a title whose summary
+-- begins with a plain word must not be read as a spinner.
+M.claudeGlyphMin   = 0x2000
 
 -- SESSIONS THE TITLE POLL CANNOT SEE (D81). Sessions are found by asking
 -- Terminal.app for its window titles, which is the only API that answers for
@@ -843,6 +860,14 @@ local function firstCodepoint(s)
   return ok and cp or nil
 end
 
+-- Is the marker leading a title's task text a spinner frame — i.e. is that
+-- session computing? By exclusion; see M.claudeIdleGlyphs for why (D91).
+local function glyphMeansWorking(glyph)
+  local cp = firstCodepoint(glyph)
+  if not cp or cp < (M.claudeGlyphMin or 0x2000) then return false end
+  return not (M.claudeIdleGlyphs or {})[cp]
+end
+
 -- A Terminal title looks like:
 --   "<cwd basename> — <glyph> <task summary> — caffeinate ◂ claude — 254×64"
 -- The trailing process component varies with whatever child is running
@@ -877,11 +902,10 @@ local function parseITermSession(wid, path, name)
   if not (name and name:lower():find("claude", 1, true)) then return nil end
   local cwd = tostring(path or ""):match("([^/]+)/?$")
   if not cwd or cwd == "" then return nil end
-  -- The glyph Claude Code writes leads the name in both terminals: a Braille
-  -- frame while it computes, ✳ when it is not (D17).
+  -- The glyph Claude Code writes leads the name in both terminals: a spinner
+  -- frame while it computes, ✳ when it is not (D17, D91).
   local glyph = name:match("^(%S+)") or ""
-  local cp    = firstCodepoint(glyph)
-  local state = (cp and cp >= 0x2800 and cp <= 0x28FF) and "working" or "idle"
+  local state = glyphMeansWorking(glyph) and "working" or "idle"
   -- iTerm appends the running job as "(claude)"; that is how this session was
   -- recognised and it is not part of the task text.
   local summary = name:gsub("^%S+%s*", ""):gsub("%s*%b()%s*$", "")
@@ -910,9 +934,8 @@ local function parseClaudeTitles(text)
     if cwd then
       body = body or ""
       local glyph = body:match("^(.-)%s") or ""
-      local cp = firstCodepoint(glyph)
-      -- Braille block: the spinner Claude Code animates while computing.
-      local state = (cp and cp >= 0x2800 and cp <= 0x28FF) and "working" or "idle"
+      -- The marker Claude Code animates while computing — anything but ✳ (D91).
+      local state = glyphMeansWorking(glyph) and "working" or "idle"
       local key = cwd:lower()
       if byRepo[key] ~= "working" then byRepo[key] = state end  -- any busy session wins
       sessions[#sessions + 1] = {

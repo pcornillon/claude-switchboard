@@ -1,15 +1,15 @@
 # STATUS.md — Desktop Dashboard
 
 Living snapshot of where this project stands. Rewritten, not appended.
-Last updated: **2026-08-07 14:55 EDT** (`cornillon-laptop`) — session closed.
+Last updated: **2026-08-12 22:30 EDT** (`cornillon-laptop`) — `v65`, the yellow dot restored.
 
 ---
 
 ## State
 
-- **The tool is at `v57`, in daily use, and everything since `v52` has now been run.**
-  `M.version` reads `"v57 (iTerm sessions get real Desktop lines; measured, not assumed,
-  2026-08-06)"`.
+- **The tool is at `v65`, in daily use, and everything since `v52` has now been run.**
+  `M.version` reads `"v65 (the spinner is read by exclusion — Claude Code changed it and the
+  yellow dot died, 2026-08-12)"`.
   `v51` before it was the **merge of two machines' parallel work**. One file.
 - **`v53` fixed two connected naming faults, both found from the laptop on 2026-08-05.**
   `M.docApps` listed `["MacDown 3000"]` and the app is called **`MacDown`** — so no MacDown
@@ -120,8 +120,26 @@ Remote work: legend words are buttons (D68–D71), the hook raises the alert (D7
 
 ## Active thread — resume here
 
-**Nothing is in flight.** The session of 2026-08-05/07 closed at `v64`, with everything
-committed and pushed.
+**In flight: Task #18, the rename to `claude-switchboard` (D92).** Decided 2026-08-12,
+nothing executed. The six steps are in `TASKS.md`; the one that is easy to miss is
+`~/.hammerspoon/init.lua`, which is not in git and exists separately on **satdat1**, and the
+one that hides its own failure is `git remote set-url` — GitHub's redirect keeps a stale
+remote working. `desktop_dashboard.lua` keeps its filename.
+
+**`v65` fixed a dot that had been dead for weeks (D91).** Claude Code changed the spinner in
+its window title — `◑` U+25D1 now, Braille before — and both title parsers tested the Braille
+block, so **every** Terminal and iTerm session read `idle` and the yellow dot could never
+light. The hook file was correct throughout; it is the title that wins for a Terminal session
+(D82 over D81). The test is now by exclusion — anything that is not `✳` and is a symbol means
+computing. Verified by photographing the panel mid-prompt: Desktop 4 and `T1` yellow, the four
+idle sessions gray.
+
+**Worth carrying forward:** this failed *silently and permanently*, and it was found only
+because Peter happened to say "the gray dot is not going yellow". Anything that pins the
+panel's reading to a glyph, a title format or an app's UI will fail the same way. Ask of any
+such test: when this breaks, does a dot get stuck on (noticed) or never light (not noticed)?
+
+**The session of 2026-08-05/07 closed at `v64`**, with everything committed and pushed.
 
 **What this run produced:** `v53` → `v64`, decisions **D76–D90**, Tasks **#8–#17**, and two
 session logs including a reconstruction of one that was never written. It began with a Desktop

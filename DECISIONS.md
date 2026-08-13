@@ -1484,3 +1484,52 @@ change tense to stand alone.
   configurations — becomes invisible. That is why the flag exists. Nothing on this machine is
   in that position, and the alternative is a panel that lists Claude Code's plumbing.
 - **Where:** `readHookSessions`, `M.showUnknownTerminalSessions` — `v64`.
+
+### D91. Read the spinner by exclusion, not by codepoint range
+- **Decision:** a title's leading marker means *computing* unless it is a codepoint listed
+  in `M.claudeIdleGlyphs` (`✳` U+2733) or is below `M.claudeGlyphMin` (0x2000, i.e. task
+  text rather than a marker). The Braille-block test that had stood since D17 is gone.
+- **Why:** Claude Code changed its spinner. **Measured 2026-08-12, live, on five sessions:
+  a computing session's marker is `◑` U+25D1 and an idle one's is `✳` U+2733** — neither in
+  U+2800–U+28FF, so `parseClaudeTitles` and `parseITermSession` both classified *every*
+  Terminal and iTerm session as `idle`. **The yellow dot could not light, in any repo, for
+  an unknown number of weeks**, and nothing anywhere said so: the hook file was writing
+  `"state":"working"` correctly the whole time, but for a Terminal session the title wins
+  (D82 over D81) and the title was being misread. A range naming the spinner fails silently
+  and permanently at every redesign; a list of what is *not* the spinner fails only if a
+  second resting marker is added, and then it fails loudly — a dot stuck yellow, which is
+  noticed, rather than a dot that never lights, which is not.
+- **Where:** `M.claudeIdleGlyphs`, `M.claudeGlyphMin`, `glyphMeansWorking()`, and its two
+  callers `parseITermSession()` and `parseClaudeTitles()`. `v65`.
+- **Rejected — make the hook file authoritative for state.** It is immune to any UI change,
+  and it already exists (`readHookStates`). But **the hook is an event, not a state**: it
+  records that a prompt was submitted, and only `Stop` retracts it, so a session killed
+  without firing `SessionEnd` would sit yellow until the 12 h age-out. It would also
+  demote yellow from per-session to per-repo, since no key joins a hook file to a Terminal
+  window. The title is continuously true; that is why it holds this job.
+- **Live tension:** inversion is safe against red only because of D17's measurement — a
+  session blocked on a question shows `✳`, the same as a finished one. If that ever stops
+  holding, a waiting session's marker would read as `working` and mask its own red dot.
+
+### D92. The repo is renamed `claude-switchboard`
+- **Decision:** `Desktop_Dashboard` becomes `claude-switchboard`, locally and on GitHub.
+- **Why:** the name has to advertise the use, and the use is *deciding which of several
+  running claude sessions to attend to next* — five at once on 2026-08-12, prompted round
+  robin, with the panel consulted continuously to see which had gone red. `Desktop_Dashboard`
+  names the substrate and could be anything. The panel already *is* a switchboard: a column
+  of lines, each with indicator lamps, and pressing a lit one connects you — the legend says
+  `"click a line, or a blue word"`. It also concedes what `control panel` overclaimed: an
+  operator routes attention and never speaks on the line, which is exactly what this does.
+- **Where:** the GitHub remote; the directory; `~/.hammerspoon/init.lua` (lines 2–3, on
+  **both** machines, and not in git); `desktop_dashboard.lua` line 33; `init.lua.example`
+  lines 7 and 24. **The module file keeps its name** — `require("desktop_dashboard")` is a
+  third coupling and D64 exists because that path is load-bearing.
+- **Rejected:** `claude-spaces` / `claude-desktops` (name the substrate, not the use);
+  `claude-control-tower` and `claude-flight-deck` (good on use, but a tower issues
+  instructions and a flight deck is two different places); `agentic-switchboard` (a promise
+  five `~/.claude` hook registrations do not keep, and *agentic* is an adjective that will
+  date the repo — `agent-switchboard` if a neutral name is ever wanted).
+- **Live tension:** the day a second agent CLI is supported, the name is wrong again. Held
+  anyway, because the rename cost is now *measured* — four wired paths, two machines, and a
+  GitHub redirect that keeps a stale remote working — and paying a naming cost today to
+  hedge a maybe is the worse trade.

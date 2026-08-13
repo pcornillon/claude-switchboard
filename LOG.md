@@ -291,3 +291,41 @@ invented index is worse than a short one.
 - **P23** `1701_cornillon-laptop` · 2026-08-07 14:50 EDT · "calling it a wrap"
   → session closed: active thread refreshed, prompt index regenerated (24 prompts), both repos
     committed and pushed. `v53` → `v64`, D76–D90, Tasks #8–#17 over the run
+
+## Renaming the repo
+
+- **P1** `2115_cornillon-laptop` · 2026-08-12 21:14 EDT · can a repo be renamed locally + at
+  GitHub, and is `claude-control-panel` better than `Desktop_Dashboard`?
+  → yes; found the 4 wired paths (`init.lua`, `desktop_dashboard.lua:33`, `init.lua.example`
+    ×2) and the 2 machines. Argued against `claude-control-panel`; proposed
+    `macos-spaces-panel`. Nothing renamed yet
+- **P2** `2115_cornillon-laptop` · 2026-08-12 21:27 EDT · "the value is in running claude
+  sessions — find a name for that"
+  → conceded the `claude-*` framing; proposed `claude-spaces` (rec.), `claude-session-panel`,
+    `claude-mission-control`. Still nothing renamed
+- ★ **P3** `2115_cornillon-laptop` · 2026-08-12 21:39 EDT · one Desktop/project vs one VS Code
+  window/project?
+  → yes, claude runs from a VS Code workspace folder (ext `2.1.224` installed here). Argued
+    for the hybrid: Desktop stays the container, VS Code lives inside it. N VS Code windows
+    on one Desktop is the case that breaks both the spatial map and the panel
+- ★ **P4** `2115_cornillon-laptop` · 2026-08-12 22:08 EDT · a name that advertises the
+  round-robin-across-5-sessions use; `spaces`/`desktops` both rejected
+  → proposed `claude-switchboard` (rec.), `claude-control-tower`, `claude-flight-deck`,
+    `claude-dispatch`. Switchboard earned by the existing UI: lines + lamps + click to connect
+- **P5** `2115_cornillon-laptop` · 2026-08-12 22:14 EDT · would `agentic-switchboard` be
+  better, given a possible OpenAI backend?
+  → the port is trivial only if that CLI has 5 equivalent lifecycle hooks (unverified).
+    Recommended `claude-switchboard` now, rename when a 2nd backend runs; `agent-switchboard`
+    if hedging anyway
+- ★ **P6** `2115_cornillon-laptop` · 2026-08-12 22:19 EDT · "the gray dot is not going yellow"
+  → real bug, diagnosed: Claude Code's title spinner is now `◑` U+25D1, idle is `✳` U+2733,
+    and both parsers test the Braille block only (`:884`, `:915`) — so every Terminal session
+    reads `idle`. Hook file is correct. Three fixes proposed, none applied
+- ★ **P7** `2115_cornillon-laptop` · 2026-08-12 22:23 EDT · why not the hook-file fix? / name
+  chosen
+  → `v65` — the spinner is read by exclusion (D91); yellow verified by photograph on Desktop 4
+    and `T1`. Name settled as `claude-switchboard` (D92), Task #18 opened for the rename
+- ★ **P8** `2115_cornillon-laptop` · 2026-08-12 22:33 EDT · "commit and push, rename it, do it
+  all"
+  → `Desktop_Dashboard` → **`claude-switchboard`** on GitHub and on disk; 21 live doc
+    references and `~/.hammerspoon/init.lua` swept; history left as written. Task #18 done

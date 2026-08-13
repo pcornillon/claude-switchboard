@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# claude-dashboard-state.sh — records this session's state for Desktop Dashboard.
+# claude-dashboard-state.sh — records this session's state for Claude Switchboard.
 #
 # Usage (from ~/.claude/settings.json hooks):  claude-dashboard-state.sh <state>
 #   idle      SessionStart     — a session exists here and has not been asked anything
@@ -25,7 +25,7 @@
 # spinner there). What the title CANNOT express is *why* it stopped — a session
 # blocked on a question looks identical to one that finished. The Notification
 # hook is the only authoritative source for that, and it is what drives the red
-# dot. See CLAUDE.md in the Desktop_Dashboard repo.
+# dot. See CLAUDE.md in the claude-switchboard repo.
 #
 # Never fails the hook: every step is guarded and the script always exits 0.
 # A hook that errors would interrupt the session it is meant to observe.

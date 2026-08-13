@@ -569,3 +569,29 @@ Deliberately not changed with D88: the walk's chain is tuned around an animation
 be interrupted, and a retry inside it could fight the dwell. Doing this means measuring the
 walk the way D88 measured the click — record what was asked and what was actually reached, per
 step, over several runs — before changing anything.
+
+## Task #18 — Rename the repo to `claude-switchboard` (D92)
+
+**Status:** done (2026-08-12) — all six steps run from this session, plus a sweep of the live
+docs (`CLAUDE.md`, `README.md`, `INSTALL.md`, `init.lua.example`, and the two comment lines in
+this repo's copy of `claude-dashboard-state.sh`). **History was left alone on purpose** —
+`LOG.md`, `SESSIONS/`, `DECISIONS.md` and `PRE_CONVERSION/` still say `Desktop_Dashboard`,
+because they are a record of what happened under that name. **Not done: the DEPLOYED hook**,
+`~/Git_Repos/claude-config/hooks/claude-dashboard-state.sh`, whose two comment lines still name
+the old repo — `claude-config` had a live session in it (`T5`) and a cross-lane edit goes
+through Peter first. Cosmetic; the hook does not read the name.
+
+Six edits and one web action, in this order — the order matters only in that the working
+tree should be clean first, since the directory moves under a live session.
+
+1. `gh repo rename claude-switchboard` (Peter — or GitHub → Settings → Repository name).
+2. `git remote set-url origin https://github.com/pcornillon/claude-switchboard.git`
+3. `mv ~/Git_Repos/Desktop_Dashboard ~/Git_Repos/claude-switchboard`
+4. `~/.hammerspoon/init.lua` lines 2–3 — **not in git, and separately present on satdat1**.
+5. `desktop_dashboard.lua` line 33; `init.lua.example` lines 7 and 24.
+6. Reload Config, confirm the `vNN loaded` line, and confirm the panel still draws.
+
+`desktop_dashboard.lua` keeps its filename (D92) — `require("desktop_dashboard")` and D64.
+GitHub's redirect means a missed step 2 goes unnoticed, so check `git remote -v` after.
+**satdat1 has none of this**, and its `init.lua` is its own file: it needs steps 3–6 on its
+next pull, before which the panel there will load nothing.

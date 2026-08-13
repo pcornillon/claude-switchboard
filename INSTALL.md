@@ -1,6 +1,6 @@
-# Installing Desktop Dashboard
+# Installing Claude Switchboard
 
-How to install and run Desktop Dashboard on a machine. Do this on each Mac where you want
+How to install and run Claude Switchboard on a machine. Do this on each Mac where you want
 it (yours or a colleague's).
 
 **Two of these steps a person has to do**, because macOS won't let software grant itself
@@ -48,10 +48,10 @@ dot*, below); everything else on the panel works regardless.
 3. **Clone the repo** — put it wherever you keep your projects. From that folder:
 
    ```sh
-   git clone https://github.com/pcornillon/Desktop_Dashboard.git
+   git clone https://github.com/pcornillon/claude-switchboard.git
    ```
 
-   `git clone` creates the `Desktop_Dashboard` folder itself, so there's no destination to
+   `git clone` creates the `claude-switchboard` folder itself, so there's no destination to
    name.
 
    Note where you put it, because two later things refer to that location:
@@ -68,8 +68,8 @@ dot*, below); everything else on the panel works regardless.
    the code from the repo. This is the content of `init.lua.example`:
 
    ```lua
-   -- Load Desktop Dashboard from its repo (adjust the path if you cloned elsewhere)
-   package.path = package.path .. ";" .. os.getenv("HOME") .. "/Git_Repos/Desktop_Dashboard/?.lua"
+   -- Load Claude Switchboard from its repo (adjust the path if you cloned elsewhere)
+   package.path = package.path .. ";" .. os.getenv("HOME") .. "/Git_Repos/claude-switchboard/?.lua"
    local dd = require("desktop_dashboard")
    dd.start()
    ```
@@ -78,7 +78,7 @@ dot*, below); everything else on the panel works regardless.
    touch `package.path`, symlink instead:
 
    ```sh
-   ln -s ~/Git_Repos/Desktop_Dashboard/desktop_dashboard.lua ~/.hammerspoon/desktop_dashboard.lua
+   ln -s ~/Git_Repos/claude-switchboard/desktop_dashboard.lua ~/.hammerspoon/desktop_dashboard.lua
    ```
 
    and then just `local dd = require("desktop_dashboard"); dd.start()`.

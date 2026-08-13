@@ -1,4 +1,4 @@
-# Desktop Dashboard
+# Claude Switchboard
 
 **A macOS status panel for running several Claude Code sessions at once.**
 
@@ -10,7 +10,7 @@ something.
 It works whichever way you organise things. **⌘⌃⌥m** switches between two views, or shows
 both at once.
 
-![The Desktop Dashboard panel floating over a macOS desktop: twelve Desktops on an external display and one on a laptop display, each labelled with app icons or a project name and some carrying colored status dots, then a section listing three running Claude Code sessions, then a legend of keyboard shortcuts.](DOCS/panel.png)
+![The Claude Switchboard panel floating over a macOS desktop: twelve Desktops on an external display and one on a laptop display, each labelled with app icons or a project name and some carrying colored status dots, then a section listing three running Claude Code sessions, then a legend of keyboard shortcuts.](DOCS/panel.png)
 
 Built on [Hammerspoon](https://www.hammerspoon.org). Free, notarized, **no SIP changes**.
 
@@ -164,10 +164,10 @@ Since you're presumably already running Claude Code, it can do most of this. Clo
 wherever you keep your projects — from that folder:
 
 ```sh
-git clone https://github.com/pcornillon/Desktop_Dashboard.git
+git clone https://github.com/pcornillon/claude-switchboard.git
 ```
 
-Then start `claude` inside the new `Desktop_Dashboard` folder and paste:
+Then start `claude` inside the new `claude-switchboard` folder and paste:
 
 ````text
 Install this tool on my Mac by following INSTALL.md in this repo.
@@ -246,7 +246,7 @@ wherever their windows happen to be:
 Claude sessions:
    T1 🟡🔴 three-way_SST_error_analysis_manuscript
               Fix vertical axis la…
-   T2 ⚪️🔴 Desktop_Dashboard
+   T2 ⚪️🔴 claude-switchboard
               Improve dashboard la…
    T3 ⚪️🟢 opendap-registry
               Test timing with del…
@@ -337,7 +337,7 @@ NOTIFY_DETAIL=0
 
 - **`NOTIFY_DROPBOX=1`** drops a marker into `~/Dropbox/claude/dashboard_alerts` the
   moment a session blocks, and removes it the moment you answer. Any other Mac running
-  the dashboard shows a red line above the legend — `satdat1 · Desktop_Dashboard is
+  the dashboard shows a red line above the legend — `satdat1 · claude-switchboard is
   waiting on you` — and posts a notification the first time it sees it. Markers from your
   *own* machine are ignored, since the dot is already saying it.
 - **`NOTIFY_NTFY_URL`** pushes to your phone. `NOTIFY_PUSHOVER_TOKEN` +
@@ -616,7 +616,7 @@ updates your `origin/…` tracking refs even when it declines to move your branc
 Every session is placed by its *terminal window*, so it labels the Desktop that window is
 actually on — not whichever Desktop happens to carry a matching folder name. Sessions in
 the same project share one line, so a Desktop running three sessions in one repo stays one
-line; a Desktop running two in `Desktop_Dashboard` and one in `claude-config` draws two,
+line; a Desktop running two in `claude-switchboard` and one in `claude-config` draws two,
 both under the same `Desktop N`:
 
 ```
