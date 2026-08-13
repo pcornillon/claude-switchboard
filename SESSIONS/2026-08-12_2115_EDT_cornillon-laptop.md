@@ -206,6 +206,4 @@ reconstructed. Every prompt, in order, with the time the machine recorded.
 - `06` · 2026-08-12 22:23 EDT · Ask 1. It is not obvious to me with you are recommending 2 tonight 3 as a task
 - `07` · 2026-08-12 22:33 EDT · Ask 1. Commit and pull, run gh repo rename claude-switchboard, then rename. I'
 
-**7 prompts.** **`P6` has no row here on purpose**: the gray-dot report arrived as a
-mid-turn message inside prompt `05`'s turn, so the machine recorded no separate prompt for
-it. The curated entry is the only record of when it was asked, and its 22:19 is approximate.
+**7 prompts.**
