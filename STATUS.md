@@ -1,4 +1,4 @@
-# STATUS.md — Desktop Dashboard
+# STATUS.md — `claude-switchboard`
 
 Living snapshot of where this project stands. Rewritten, not appended.
 Last updated: **2026-08-12 22:30 EDT** (`cornillon-laptop`) — `v65`, the yellow dot restored.

@@ -1,4 +1,4 @@
-# TASKS.md — Desktop Dashboard
+# TASKS.md — `claude-switchboard`
 
 Numbered work list. Tasks are appended and **never reopened**: a follow-on change is a
 new task that references the old one. Each carries a `Status:` line —
@@ -230,7 +230,7 @@ renames the project, saved globally under `projects` in the state file.
 
 | Desktop | drawn as | dots | colour |
 |---|---|---|---|
-| 13 — two AGU sessions + one MODIS_L2_Manuscript | **two lines** under one `Desktop 13` | claude + git on both | white |
+| 13 — two AGU sessions + one `MODIS_L2_Manuscript` | **two lines** under one `Desktop 13` | claude + git on both | white |
 | 11 — one session | one line, `wids=1` | claude + git | white |
 | 3, 9 — repo windows, no session | one line each | **none** | **orange** |
 | 7 — ⌘⌃⌥N name | one line | none | white (your word, not a claim) |

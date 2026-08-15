@@ -1,4 +1,4 @@
-# CLAUDE.md — Claude Switchboard
+# CLAUDE.md — `claude-switchboard`
 
 **What:** a Hammerspoon overlay panel reporting live macOS Desktop, Claude-session and
 git state.

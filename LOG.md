@@ -1,4 +1,4 @@
-# LOG.md — Desktop Dashboard
+# LOG.md — `claude-switchboard`
 
 One line per prompt, appended live, read top to bottom to see what has been done.
 `★` marks a substantive entry. Each entry carries a session key — `` `<HHMM>_<host>` `` —
@@ -84,7 +84,7 @@ invented index is worse than a short one.
     count — drawn **orange** and carrying **no dots**. `claudeStateFor`, the string match at
     the root of the whole fault report, is **deleted**. Click-to-cycle and a global,
     project-scoped ⌘⌃⌥N added. **Verified by calling `screenEntries` directly:** Desktop 13's
-    two AGU sessions plus one MODIS_L2 draw as **two lines** under one Desktop, exactly the
+    two AGU sessions plus one `MODIS_L2` draw as **two lines** under one Desktop, exactly the
     case Peter reported. Click and ⌘⌃⌥N need a mouse and are untested. **Reported:** a
     ⌘⌃⌥N Desktop name is ignored on a Desktop that has a session — `3-way_analysis` reverts
     to the long repo name until re-applied as a *project* name
@@ -329,3 +329,9 @@ invented index is worse than a short one.
   all"
   → `Desktop_Dashboard` → **`claude-switchboard`** on GitHub and on disk; 21 live doc
     references and `~/.hammerspoon/init.lua` swept; history left as written. Task #18 done
+
+- **P2** `1745_cornillon-laptop` · 2026-08-14 21:49 EDT · spine titles brought to D37, from
+  a session in `claude-config`
+  → every spine H1 is now `# <FILENAME> — claude-switchboard` and `README.md` is the
+    directory name alone; no other change here. Session log:
+    `claude-config/SESSIONS/2026-08-14_1745_EDT_cornillon-laptop.md`

@@ -1,4 +1,6 @@
-# Claude Switchboard
+# `claude-switchboard`
+
+**Claude Switchboard.**
 
 **A macOS status panel for running several Claude Code sessions at once.**
 

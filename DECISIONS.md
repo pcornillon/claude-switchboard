@@ -1,4 +1,4 @@
-# DECISIONS.md — Desktop Dashboard
+# DECISIONS.md — `claude-switchboard`
 
 Numbered, appended, never renumbered. Cite them by number from `TASKS.md`,
 `STATUS.md`, `LOG.md` and from comments in `desktop_dashboard.lua`.
@@ -1061,7 +1061,7 @@ change tense to stand alone.
 - **Decision:** the `INSTALL` block in `desktop_dashboard.lua`'s header says **clone the repo
   and point `package.path` at it**, and says in as many words not to copy the file into
   `~/.hammerspoon`. It previously said *"Copy this file to
-  ~/.hammerspoon/desktop_dashboard.lua"*.
+  `~/.hammerspoon/desktop_dashboard.lua`"*.
 - **Why:** that instruction was the stale-copy bug of 2026-07-27 written down as a
   recommendation. `INSTALL.md`, `CLAUDE.md` and **D64** all say the opposite — the code stays
   where the repo is, because `~/.hammerspoon/init.lua` and `~/.claude/settings.json` name
@@ -1466,12 +1466,12 @@ change tense to stand alone.
 
   | state | `term` | repo | age |
   |---|---|---|---|
-  | working | `Apple_Terminal` | Desktop_Dashboard | 0 m |
-  | idle | **unknown** | three-way_SST_error_analysis_manuscript | 11 m |
-  | done | *(absent, pre-v56)* | Desktop_Dashboard | 3.7 days |
-  | done | `Apple_Terminal` | three-way_SST_error_analysis_manuscript | 53 m |
+  | working | `Apple_Terminal` | `Desktop_Dashboard` | 0 m |
+  | idle | **unknown** | `three-way_SST_error_analysis_manuscript` | 11 m |
+  | done | *(absent, pre-v56)* | `Desktop_Dashboard` | 3.7 days |
+  | done | `Apple_Terminal` | `three-way_SST_error_analysis_manuscript` | 53 m |
   | idle | `vscode` | opendap-registry | 58 m |
-  | waiting | **unknown** | three-way_SST_error_analysis_manuscript | 3 m |
+  | waiting | **unknown** | `three-way_SST_error_analysis_manuscript` | 3 m |
 
   The running processes settled it: **three `claude` processes had working directories under
   `/private/tmp/cc-daemon-502/…/spare`**, against four in real repositories.
