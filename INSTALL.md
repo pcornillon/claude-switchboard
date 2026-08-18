@@ -52,59 +52,57 @@ dot*, below); everything else on the panel works regardless.
    ```
 
    `git clone` creates the `claude-switchboard` folder itself, so there's no destination to
-   name.
+   name. Put it anywhere — step 4 works out where it landed, and where you keep repos,
+   without being told.
 
-   Note where you put it, because two later things refer to that location:
-
-   - the loader line in step 4 must point at it;
-   - `M.repoRoots` — the setting telling the dashboard where your repos live — defaults to
-     `~/Git_Repos`.
-
-   If that happens to be where you keep repos, both work unmodified. Anywhere else is fine
-   too; it's one line to change in each.
-
-4. **Point Hammerspoon at it.** Hammerspoon only loads Lua from `~/.hammerspoon/`, so add
-   these lines to `~/.hammerspoon/init.lua` (create the file if it doesn't exist) to load
-   the code from the repo. This is the content of `init.lua.example`:
-
-   ```lua
-   -- Load Claude Switchboard from its repo (adjust the path if you cloned elsewhere)
-   package.path = package.path .. ";" .. os.getenv("HOME") .. "/Git_Repos/claude-switchboard/?.lua"
-   local dd = require("desktop_dashboard")
-   dd.start()
-   ```
-
-   Adjust the path if you cloned somewhere other than `~/Git_Repos`. If you'd rather not
-   touch `package.path`, symlink instead:
+4. **Wire it up.** From the repo you just cloned:
 
    ```sh
-   ln -s ~/Git_Repos/claude-switchboard/desktop_dashboard.lua ~/.hammerspoon/desktop_dashboard.lua
+   ./install.sh
    ```
 
-   and then just `local dd = require("desktop_dashboard"); dd.start()`.
+   It works out both paths itself — the repo's, from where the script sits, and where you
+   keep repositories, from the repo's parent — writes them into `~/.hammerspoon/init.lua`,
+   and restarts Hammerspoon. It asks nothing and prints what it did:
 
-   > **If `~/.hammerspoon/init.lua` already exists, add to it — don't replace it.** It may
-   > hold unrelated Hammerspoon config you'd lose.
+   ```
+   repo:   /Users/you/Git_Repos/claude-switchboard
+   repos:  /Users/you/Git_Repos
+   target: /Users/you/.hammerspoon/init.lua
 
-   > If an older copy already sits at `~/.hammerspoon/desktop_dashboard.lua`, remove it so
-   > there's a single source of truth — otherwise `require` loads that stale copy instead
-   > of the repo.
+   OK   Hammerspoon is installed
+   WRITE created /Users/you/.hammerspoon/init.lua with the claude-switchboard block
 
-5. **Reload and verify.** Click the Hammerspoon menu‑bar icon (the hammer) → **Reload
-   Config**. You should see `desktop_dashboard vNN … loaded` in the Hammerspoon Console and
-   the panel appear in a corner.
+   restarted Hammerspoon
+   ```
 
-   No menu bar available (installing over SSH, or having Claude do it)? Restart Hammerspoon
-   from a shell instead — same effect:
+   If you already had an `init.lua`, it says `backed up your init.lua` and `appended the
+   claude-switchboard block; your own config is untouched` instead. What it writes sits
+   between two markers, so running it again replaces that block rather than adding a
+   second one — re-run it after a `git pull`, or after moving the repo.
+
+   Keep repos somewhere other than the parent of this one? Name it, as many times as you
+   need:
 
    ```sh
-   osascript -e 'quit app "Hammerspoon"'; /bin/sleep 3; open -a Hammerspoon
+   ./install.sh --repos ~/work/repos --repos ~/Dropbox/projects
    ```
 
-   (`/bin/sleep` rather than plain `sleep` — some agent setups block the latter.)
+5. **Look at the screen.** 🧑 This part is yours: the panel is an on-screen overlay, and a
+   script cannot see it.
 
-   🧑 **Confirming the panel actually appeared is yours to do** — it's an on-screen overlay,
-   and screenshots taken from a shell can't see it without Screen Recording permission.
+   The panel should be in a corner, and the Hammerspoon Console should say
+   `desktop_dashboard vNN … loaded`.
+
+   **If every Desktop label is blank or `—`**, Hammerspoon does not have Accessibility
+   permission — go back to step 2. That is the one failure that looks like a bug and is
+   not.
+
+   To ask later whether this machine is still wired up, without changing anything:
+
+   ```sh
+   ./install.sh --check
+   ```
 
 ## Optional: the red dot (Claude Code hooks)
 
@@ -112,48 +110,71 @@ The yellow and green dots work out of the box. **Red** — "this session is aski
 something" — needs Claude Code to tell us, because a session blocked on a question puts
 exactly the same thing in its terminal title as one that has finished.
 
-1. Put `claude-dashboard-state.sh` somewhere stable and make it executable:
+One command, from the repo:
 
-   ```sh
-   cp claude-dashboard-state.sh ~/.claude/claude-dashboard-state.sh
-   chmod +x ~/.claude/claude-dashboard-state.sh
-   ```
+```sh
+./install.sh --hooks
+```
 
-2. Register it on five events in `~/.claude/settings.json`. **Merge — never replace this
-   file.** It holds your permissions and any hooks you already run; appending to an existing
-   event's `hooks` array is the whole job. Back it up first. (`~/.claude/settings.json` is
-   often a symlink to somewhere like Dropbox, in which case your edit syncs to your other
-   machines — harmless here, since the script does nothing on a Mac without Hammerspoon.)
+It copies `claude-dashboard-state.sh` to `~/.claude/`, then registers it on five Claude
+Code events in `~/.claude/settings.json`. That file usually holds your permissions and
+whatever hooks you already run, so it is **merged, never replaced**: the script backs it
+up to `settings.json.pre-switchboard.bak`, adds its five entries alongside anything
+already there, and refuses to touch the file at all if it does not already parse as JSON.
+It writes to a temporary file and parses that before moving it into place — malformed
+JSON there silently disables *every* setting in the file, permissions and all, with no
+error anywhere.
 
-   ```json
-   {
-     "hooks": {
-       "UserPromptSubmit": [{ "hooks": [{ "type": "command", "async": true, "timeout": 5,
-         "command": "bash \"$HOME/.claude/claude-dashboard-state.sh\" working" }] }],
-       "Notification":     [{ "hooks": [{ "type": "command", "async": true, "timeout": 5,
-         "command": "bash \"$HOME/.claude/claude-dashboard-state.sh\" waiting" }] }],
-       "Stop":             [{ "hooks": [{ "type": "command", "async": true, "timeout": 5,
-         "command": "bash \"$HOME/.claude/claude-dashboard-state.sh\" done" }] }],
-       "SessionEnd":       [{ "hooks": [{ "type": "command", "async": true, "timeout": 5,
-         "command": "bash \"$HOME/.claude/claude-dashboard-state.sh\" gone" }] }],
-       "SessionStart":     [{ "hooks": [{ "type": "command", "async": true, "timeout": 5,
-         "command": "bash \"$HOME/.claude/claude-dashboard-state.sh\" idle" }] }]
-     }
-   }
-   ```
+Run it twice and the second run reports `the red-dot hook is already registered (5
+event(s)) — nothing added`. If `~/.claude/settings.json` is a symlink — to a configuration
+repo, or a synced folder — it says so and names the file it is really editing.
 
-   **`SessionStart` is the one people leave off, and it is the one that makes a session
-   visible before you have typed anything.** Without it, a session you have just opened has
-   written nothing, so in a terminal the panel cannot read directly — Ghostty, kitty,
-   Cursor — it appears nowhere until your first prompt.
+**The five events are not interchangeable.** `SessionStart` is the one people leave off by
+hand, and it is the one that makes a session visible before you have typed anything:
+without it, a session in a terminal the panel cannot read directly — Ghostty, kitty,
+Cursor — appears nowhere until your first prompt.
 
-3. Check it: `ls ~/.hammerspoon/claude_state/` should show one JSON file per live session
-   as soon as the session starts. If nothing appears, open `/hooks` in Claude Code once
-   (that reloads the config) or restart the session.
+**Check it:** `ls ~/.hammerspoon/claude_state/` should show one JSON file per live session
+as soon as that session starts. If nothing appears, open `/hooks` in Claude Code once
+(that reloads the configuration) or restart the session.
 
 The script writes only to `~/.hammerspoon/claude_state/`, exits 0 unconditionally, and
-does nothing at all on a machine with no `~/.hammerspoon` — so it is safe to sync these
-settings across machines.
+does nothing at all on a machine with no `~/.hammerspoon` — so these settings are safe to
+sync across machines.
+
+## Doing step 4 by hand
+
+`install.sh` writes this into `~/.hammerspoon/init.lua`, and nothing else:
+
+```lua
+-- >>> claude-switchboard >>>
+package.path = package.path .. ";" .. "/absolute/path/to/claude-switchboard/?.lua"
+local dd = require("desktop_dashboard")
+dd.repoRoots = {
+  "/absolute/path/to/where/you/keep/repos",
+}
+dd.start()
+-- <<< claude-switchboard <<<
+```
+
+Write it yourself if you prefer; `init.lua.example` is the same thing with its reasoning,
+plus the optional `hs.ipc` bridge that lets you query the running instance from a shell
+(`hs -c "return dd.version"`). Two things to know if you go this way:
+
+- **`dd.repoRoots` is why `desktop_dashboard.lua` never needs editing.** It overrides the
+  `~/Git_Repos` default in the module, after `require` and before `dd.start()`, so a
+  `git pull` cannot conflict with your own configuration.
+- **An old copy at `~/.hammerspoon/desktop_dashboard.lua` wins over the repo**, because
+  `require` looks there first. Move it aside. `install.sh` does this for you and says so.
+
+Reload Hammerspoon afterwards — the menu-bar hammer → **Reload Config**, or from a shell:
+
+```sh
+osascript -e 'quit app "Hammerspoon"'; /bin/sleep 3; open -a Hammerspoon
+```
+
+(`/bin/sleep` rather than plain `sleep` — some agent setups block the latter.)
+
 
 ## First run
 
@@ -222,9 +243,11 @@ Notes:
 
 ## Configuration
 
-Everything is in the `CONFIG` block at the top of `desktop_dashboard.lua`. On a new machine
-the main one to set is `M.repoRoots` (your repos folder, default `~/Git_Repos`); you may
-also adjust `M.categories` / `M.docApps` to the apps you actually use. See the
+Everything is in the `CONFIG` block at the top of `desktop_dashboard.lua`. The one that
+matters on a new machine, `M.repoRoots`, is already handled: `install.sh` writes it into
+`~/.hammerspoon/init.lua` as `dd.repoRoots`, which overrides the default without editing a
+tracked file. Re-run `./install.sh --repos DIR` to change it. The rest — `M.categories`,
+`M.docApps` and the like — are edited in `desktop_dashboard.lua` itself; see the
 Configuration section of `README.md` for the full list.
 
 ## Troubleshooting

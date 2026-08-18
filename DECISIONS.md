@@ -1533,3 +1533,36 @@ change tense to stand alone.
   anyway, because the rename cost is now *measured* — four wired paths, two machines, and a
   GitHub redirect that keeps a stale remote working — and paying a naming cost today to
   hedge a maybe is the worse trade.
+
+### D93. The install writes `~/.hammerspoon/init.lua` itself, between markers
+- **Decision:** `install.sh` owns the wiring. It derives the repo's path from its own
+  location and the repos folder from the repo's parent, writes both into a block between
+  `-- >>> claude-switchboard >>>` and `-- <<< claude-switchboard <<<` in
+  `~/.hammerspoon/init.lua`, and restarts Hammerspoon. `--check` reports without changing,
+  `--repos DIR` overrides the guess, `--hooks` registers the red-dot hooks. INSTALL.md
+  step 4 becomes one command; the by-hand version moves to an appendix.
+- **Why:** step 4 was the step people failed at, and it failed structurally rather than
+  editorially. It asked the reader to choose between two mechanisms (`package.path` or a
+  symlink), warned about two files that may or may not exist, and hard-coded `~/Git_Repos`
+  in the one line that has to be right. Every one of those is knowable by a script and
+  none of it is knowable by the reader on a first install. Peter, 2026-08-18, watching a
+  student work through it: *"Instruction 4 in the INSTALL.md file is beyond confusing …
+  Can't we assume that they are installing for the first time and then say exactly what
+  they will find rather than the conditionals."*
+- **Why markers rather than a whole file:** `init.lua` is often somebody's own Hammerspoon
+  configuration. Between markers, a re-run replaces the block instead of appending a
+  second copy — so the script is safe to run again after a `git pull`, after moving the
+  repo, or with different `--repos` — and everything outside the markers is never read or
+  rewritten.
+- **Why `dd.repoRoots` in `init.lua`:** it overrides `M.repoRoots` after `require` and
+  before `dd.start()`, so `desktop_dashboard.lua` — a tracked file — never has to be
+  edited for a machine's layout, and a `git pull` cannot conflict with local configuration.
+  This is the same lesson `claude-config` learned on 2026-08-17: every file an installer
+  rewrites in place is a file `git pull` can later refuse to update.
+- **Where:** `install.sh`; `INSTALL.md` steps 3, 4, 5, the red-dot section and the new
+  "Doing step 4 by hand" appendix; `README.md`'s Install section, the `M.repoRoots` entry
+  and the Claude-Code-installs-it prompt; `init.lua.example`, which stays as the
+  documentation of what the script writes.
+- **Live tension:** two ways to do the same thing now exist, and the appendix keeps the
+  hand version alive. That is deliberate — the script cannot help someone whose setup it
+  does not anticipate — but it is a second thing to keep current.

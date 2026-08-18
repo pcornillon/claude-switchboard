@@ -595,3 +595,35 @@ tree should be clean first, since the directory moves under a live session.
 GitHub's redirect means a missed step 2 goes unnoticed, so check `git remote -v` after.
 **satdat1 has none of this**, and its `init.lua` is its own file: it needs steps 3–6 on its
 next pull, before which the panel there will load nothing.
+
+---
+
+## Task #19 — An installer, so step 4 is one command (D93)
+
+**Status:** done (2026-08-18) — written, exercised against four sandbox homes, not yet
+committed at the time of writing.
+
+`install.sh` derives the repo path and the repos folder, writes a marked block into
+`~/.hammerspoon/init.lua`, moves aside a stale `~/.hammerspoon/desktop_dashboard.lua`,
+restarts Hammerspoon, and with `--hooks` merges the five red-dot events into
+`~/.claude/settings.json`. `--check` reports without changing anything.
+
+**Exercised, not assumed** — four sandbox `HOME`s:
+
+1. **Nothing there** → `init.lua` created with the block.
+2. **Run again** → block replaced, not duplicated (one marker pair in the file).
+3. **A user's own `init.lua`, plus a stale `desktop_dashboard.lua`** → backed up to
+   `init.lua.pre-switchboard.bak`, block appended below the user's own lines, stale module
+   renamed `.stale.bak`. Two `--repos` flags produced two entries in `dd.repoRoots`.
+4. **`--hooks` over a `settings.json` holding another `Stop` hook and a permissions block**
+   → both preserved, five events registered alongside; a second run reported *"already
+   registered (5 event(s)) — nothing added"*.
+
+**One bug found and fixed in the writing:** `--check` reported "no claude-switchboard
+block" on a file that had one. `grep -F "-- >>> …"` reads a pattern beginning with `--` as
+options; it needs `grep -F --`.
+
+**Not done:** running it for real on this machine. Peter's `~/.hammerspoon/init.lua` is
+live and his `~/.claude/settings.json` is a symlink into `claude-config`, where the
+dashboard hook is already registered — `--hooks` would correctly report it as present, but
+that is his call to make, not this session's.

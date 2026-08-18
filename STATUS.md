@@ -1,7 +1,8 @@
 # STATUS.md — `claude-switchboard`
 
 Living snapshot of where this project stands. Rewritten, not appended.
-Last updated: **2026-08-12 22:30 EDT** (`cornillon-laptop`) — `v65`, the yellow dot restored.
+Last updated: **2026-08-18 17:40 EDT** (`cornillon-laptop`) — `install.sh`, D93.
+Before that, 2026-08-12 22:30 EDT — `v65`, the yellow dot restored.
 
 ---
 
@@ -120,11 +121,33 @@ Remote work: legend words are buttons (D68–D71), the hook raises the alert (D7
 
 ## Active thread — resume here
 
-**In flight: Task #18, the rename to `claude-switchboard` (D92).** Decided 2026-08-12,
-nothing executed. The six steps are in `TASKS.md`; the one that is easy to miss is
-`~/.hammerspoon/init.lua`, which is not in git and exists separately on **satdat1**, and the
-one that hides its own failure is `git remote set-url` — GitHub's redirect keeps a stale
-remote working. `desktop_dashboard.lua` keeps its filename.
+**2026-08-18 — installing is one command now (Task #19, D93).** `install.sh` derives the
+repo's path and the repos folder, writes them into a marked block in
+`~/.hammerspoon/init.lua`, moves a stale `~/.hammerspoon/desktop_dashboard.lua` aside, and
+restarts Hammerspoon; `--hooks` merges the five red-dot events into
+`~/.claude/settings.json`; `--check` reports without changing anything. `INSTALL.md` steps
+3–5 and the red-dot section are rewritten around it and the by-hand version is an appendix.
+
+- **Exercised against four sandbox `HOME`s, never against this machine.** Fresh install,
+  re-run, a user's own `init.lua` plus a stale module, and a `--hooks` merge over an
+  existing hook and permissions block — results in Task #19.
+- **Nothing here has been run for real, and nothing is committed.** Peter's `init.lua` is
+  live, and his `~/.claude/settings.json` is a symlink into `claude-config` where the
+  dashboard hook is already registered. `./install.sh --check` is the safe first move.
+- **This came out of a student install on 2026-08-18**, which is also what is driving the
+  `claude-config-public` documentation work; the starter's own instructions for this repo
+  are rewritten next, from what is settled here.
+
+**Task #18, the rename to `claude-switchboard` (D92), is done — 2026-08-12.** This
+section claimed it was in flight and unexecuted until 2026-08-18, which it was not. One
+thing from it is still open, and it is cosmetic: the **deployed** hook,
+`claude-config/hooks/claude-dashboard-state.sh`, has two comment lines still naming
+`Desktop_Dashboard`. The hook does not read the name. `desktop_dashboard.lua` keeps its
+filename on purpose (D64).
+
+**`~/.hammerspoon/init.lua` is not in git and differs per machine**, which used to be the
+easy thing to miss in any rename or move. It no longer needs hand-editing: run
+`./install.sh` on each machine and it rewrites its own block.
 
 **`v65` fixed a dot that had been dead for weeks (D91).** Claude Code changed the spinner in
 its window title — `◑` U+25D1 now, Braille before — and both title parsers tested the Braille

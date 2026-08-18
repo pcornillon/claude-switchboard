@@ -146,8 +146,10 @@ changes.
 
 ## Install
 
-Full steps in **[INSTALL.md](INSTALL.md)** — install Hammerspoon, grant Accessibility, add
-the loader line to `~/.hammerspoon/init.lua`, Reload Config, press ⌘⌃⌥s once.
+Full steps in **[INSTALL.md](INSTALL.md)** — install Hammerspoon, grant Accessibility,
+clone this repo, run `./install.sh`, press ⌘⌃⌥s once. The installer works out where the
+repo is and where you keep repos, writes both into `~/.hammerspoon/init.lua`, and restarts
+Hammerspoon; `./install.sh --check` tells you later whether a machine is still wired up.
 
 The **red** dot needs one extra, optional step: letting Claude Code tell the dashboard when
 it has paused for you. Claude Code can be told to run a script automatically at set moments.
@@ -179,11 +181,11 @@ when you reach each one:
   - granting Hammerspoon Accessibility permission (macOS won't let software grant it)
   - confirming the panel actually appeared on my screen
 
-Two files may already exist and may contain things I care about. Back both up first,
-show me what you intend to change, and ADD to them — never overwrite:
+Use ./install.sh for the Hammerspoon wiring and ./install.sh --hooks for the red dot,
+rather than editing these two files by hand — the script backs both up and merges into
+them, never overwriting:
   - ~/.hammerspoon/init.lua
-  - ~/.claude/settings.json  (only if I say I want the red dot; merge the four entries
-    into any existing "hooks" object rather than replacing it)
+  - ~/.claude/settings.json  (only if I say I want the red dot)
 
 If `brew` asks for my password, stop and tell me rather than trying to work around it.
 
@@ -714,6 +716,8 @@ Everything is in the `CONFIG` block at the top of `desktop_dashboard.lua`. Most 
 need changing:
 
 - `M.repoRoots` — folders whose subdirectories are your repos (default `~/Git_Repos`).
+  **Set this through `./install.sh --repos DIR` rather than here**: the installer writes
+  `dd.repoRoots` into `~/.hammerspoon/init.lua`, which overrides this and survives a pull.
 - `M.mode` — which view the panel opens in: `"desktops"`, `"terminals"` or `"both"`. ⌘⌃⌥m
   changes it at runtime and the choice is remembered, so this is only the first-run value.
 - `M.sessionTwoLine`, `M.sessionSummaryChars`, `M.sessionSummaryIndent`, `M.sessionHeader`

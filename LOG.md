@@ -335,3 +335,10 @@ invented index is worse than a short one.
   → every spine H1 is now `# <FILENAME> — claude-switchboard` and `README.md` is the
     directory name alone; no other change here. Session log:
     `claude-config/SESSIONS/2026-08-14_1745_EDT_cornillon-laptop.md`
+
+- ★ **P30** `2127_cornillon-laptop` · 2026-08-18 17:24 EDT · step 4 of `INSTALL.md` is
+  beyond confusing — automate the paths
+  → `install.sh` written (marked block in `~/.hammerspoon/init.lua`, `--check`, `--repos`,
+    `--hooks`), `INSTALL.md` steps 3–5 and the red-dot section rewritten around it, the
+    by-hand version moved to an appendix. D93, Task #19. Session log here; the verbatim
+    transcript is in `claude-config/SESSIONS/2026-08-16_2127_EDT_cornillon-laptop.md`
