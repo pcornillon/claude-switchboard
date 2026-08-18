@@ -626,6 +626,12 @@ call `dd.start()` twice. The script now names the offending lines and refuses, e
 before it can reload Hammerspoon or register hooks; `SWITCHBOARD_FORCE=1` overrides.
 `--check` reports the same condition as a `DIFF`.
 
+**A sixth case, found by running `--check` on Peter's own machine:** his `init.lua`
+carries `require("hs.ipc")` and `_G.dd = dd` — the command-line bridge, which the block
+did not write, so upgrading would have silently cost him `hs -c "return dd.version"`. The
+bridge is now part of the block **by default**, `--no-ipc` leaves it out, and the default
+block is line-for-line what he had plus `dd.repoRoots`.
+
 **One bug found and fixed in the writing:** `--check` reported "no claude-switchboard
 block" on a file that had one. `grep -F "-- >>> …"` reads a pattern beginning with `--` as
 options; it needs `grep -F --`.

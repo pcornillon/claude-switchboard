@@ -81,6 +81,10 @@ dot*, below); everything else on the panel works regardless.
    between two markers, so running it again replaces that block rather than adding a
    second one — re-run it after a `git pull`, or after moving the repo.
 
+   The block it writes also turns on the command-line bridge — `require("hs.ipc")` and
+   `_G.dd = dd` — so you can query the running panel from a shell: `hs -c "return
+   dd.version"`. Pass `--no-ipc` if you would rather not have it.
+
    **Wired it up by hand once before?** The script refuses rather than start the panel
    twice: it names the loader lines it found in your `init.lua` and asks you to delete
    them first. Do that, re-run, and your old hand-written lines are replaced by the block.
@@ -153,7 +157,9 @@ sync across machines.
 ```lua
 -- >>> claude-switchboard >>>
 package.path = package.path .. ";" .. "/absolute/path/to/claude-switchboard/?.lua"
+require("hs.ipc")                       -- omitted with --no-ipc
 local dd = require("desktop_dashboard")
+_G.dd = dd                              -- omitted with --no-ipc
 dd.repoRoots = {
   "/absolute/path/to/where/you/keep/repos",
 }
@@ -161,9 +167,8 @@ dd.start()
 -- <<< claude-switchboard <<<
 ```
 
-Write it yourself if you prefer; `init.lua.example` is the same thing with its reasoning,
-plus the optional `hs.ipc` bridge that lets you query the running instance from a shell
-(`hs -c "return dd.version"`). Two things to know if you go this way:
+Write it yourself if you prefer; `init.lua.example` is the same thing with its reasoning.
+Two things to know if you go this way:
 
 - **`dd.repoRoots` is why `desktop_dashboard.lua` never needs editing.** It overrides the
   `~/Git_Repos` default in the module, after `require` and before `dd.start()`, so a

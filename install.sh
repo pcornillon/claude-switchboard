@@ -10,6 +10,7 @@
 #     ./install.sh --repos DIR     where your repos live (repeatable; default: repo's parent)
 #     ./install.sh --hooks         also register the red-dot hooks with Claude Code
 #     ./install.sh --no-reload     leave Hammerspoon alone; reload it yourself
+#     ./install.sh --no-ipc        leave out the command-line bridge (see below)
 #
 # WHY A MARKED BLOCK. What goes into ~/.hammerspoon/init.lua sits between two comment
 # markers, so a second run REPLACES it rather than appending a second copy. That is what
@@ -31,12 +32,13 @@ STALE="$HS_DIR/desktop_dashboard.lua"
 MARK_A="-- >>> claude-switchboard >>>"
 MARK_B="-- <<< claude-switchboard <<<"
 
-CHECK_ONLY=0; DO_HOOKS=0; RELOAD=1; REPO_ROOTS=()
+CHECK_ONLY=0; DO_HOOKS=0; RELOAD=1; IPC=1; REPO_ROOTS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)     CHECK_ONLY=1; shift ;;
     --hooks)     DO_HOOKS=1; shift ;;
     --no-reload) RELOAD=0; shift ;;
+    --no-ipc)    IPC=0; shift ;;
     --repos)     REPO_ROOTS+=("${2:?--repos needs a directory}"); shift 2 ;;
     -h|--help)   sed -n '2,20p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
@@ -67,11 +69,19 @@ for r in "${REPO_ROOTS[@]}"; do
 "
 done
 
+ipc_lua=""
+[ "$IPC" -eq 1 ] && ipc_lua="-- Command-line bridge: hs -c \"return dd.version\"  (--no-ipc to leave it out)
+require(\"hs.ipc\")
+"
+
 BLOCK="$MARK_A
 -- Written by claude-switchboard/install.sh. Edit above or below this block, not
 -- inside it: a re-run replaces everything between the markers.
 package.path = package.path .. \";\" .. \"$REPO/?.lua\"
-local dd = require(\"desktop_dashboard\")
+${ipc_lua}local dd = require(\"desktop_dashboard\")"
+[ "$IPC" -eq 1 ] && BLOCK="$BLOCK
+_G.dd = dd"
+BLOCK="$BLOCK
 dd.repoRoots = {
 $roots_lua}
 dd.start()
