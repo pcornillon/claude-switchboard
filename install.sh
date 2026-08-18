@@ -106,6 +106,13 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
     fi
   fi
   [ -e "$STALE" ] && { ylw "DIFF a stale $STALE would be loaded instead of the repo"; fail=1; }
+  if [ -f "$INIT" ] && python3 -c 'import re,sys
+body=open(sys.argv[1],encoding="utf-8").read()
+rest=re.sub(re.escape(sys.argv[2])+r".*?"+re.escape(sys.argv[3]),"",body,flags=re.S)
+sys.exit(0 if "desktop_dashboard" in rest else 1)' "$INIT" "$MARK_A" "$MARK_B"; then
+    ylw "DIFF $INIT loads desktop_dashboard outside the markers too — dd.start() would run twice"
+    fail=1
+  fi
   if [ -f "$HOME/.claude/settings.json" ] &&
      grep -q "claude-dashboard-state.sh" "$HOME/.claude/settings.json" 2>/dev/null; then
     grn "OK   the red-dot hook is registered with Claude Code"
@@ -144,6 +151,19 @@ if not os.path.exists(init):
     raise SystemExit(0)
 
 body = open(init, encoding="utf-8").read()
+
+# A hand-written loader from an earlier install would run alongside ours: package.path
+# set twice, dd.start() called twice. Refuse rather than quietly double it.
+outside = re.sub(re.escape(a) + r".*?" + re.escape(b), "", body, flags=re.S)
+if "desktop_dashboard" in outside and not os.environ.get("SWITCHBOARD_FORCE"):
+    print("STOP  %s already loads desktop_dashboard outside our markers:" % init)
+    for line in outside.splitlines():
+        if "desktop_dashboard" in line:
+            print("        %s" % line.strip())
+    print("      Those lines are an earlier install by hand. Delete them and re-run —")
+    print("      or re-run with SWITCHBOARD_FORCE=1 to add ours anyway, which starts it twice.")
+    raise SystemExit(1)
+
 bak = init + ".pre-switchboard.bak"
 if not os.path.exists(bak):
     shutil.copy2(init, bak)
@@ -158,6 +178,7 @@ else:
     open(init, "w").write(body + sep + "\n" + block + "\n")
     print("WRITE appended the claude-switchboard block; your own config is untouched")
 PY
+[ $? -eq 0 ] || exit 1          # it refused; do not go on to reload or register hooks
 
 # ---------------------------------------------------------------------------
 # --hooks: the red dot. Five events in ~/.claude/settings.json, merged into
@@ -213,6 +234,7 @@ json.load(open(tmp, encoding="utf-8"))          # parse it before it goes live
 os.replace(tmp, real)
 print("WRITE registered the red-dot hook on five events")
 PY
+  [ $? -eq 0 ] || exit 1        # unparseable settings.json; stop rather than reload
 fi
 
 # ---------------------------------------------------------------------------

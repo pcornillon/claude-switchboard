@@ -81,6 +81,10 @@ dot*, below); everything else on the panel works regardless.
    between two markers, so running it again replaces that block rather than adding a
    second one — re-run it after a `git pull`, or after moving the repo.
 
+   **Wired it up by hand once before?** The script refuses rather than start the panel
+   twice: it names the loader lines it found in your `init.lua` and asks you to delete
+   them first. Do that, re-run, and your old hand-written lines are replaced by the block.
+
    Keep repos somewhere other than the parent of this one? Name it, as many times as you
    need:
 

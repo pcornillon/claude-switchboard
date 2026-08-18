@@ -619,6 +619,13 @@ restarts Hammerspoon, and with `--hooks` merges the five red-dot events into
    → both preserved, five events registered alongside; a second run reported *"already
    registered (5 event(s)) — nothing added"*.
 
+**A fifth case, added after the first four passed:** an `init.lua` that already loads
+`desktop_dashboard` **outside** the markers — an earlier install by hand, which is exactly
+what Peter's own machine has. Appending our block there would set `package.path` twice and
+call `dd.start()` twice. The script now names the offending lines and refuses, exiting 1
+before it can reload Hammerspoon or register hooks; `SWITCHBOARD_FORCE=1` overrides.
+`--check` reports the same condition as a `DIFF`.
+
 **One bug found and fixed in the writing:** `--check` reported "no claude-switchboard
 block" on a file that had one. `grep -F "-- >>> …"` reads a pattern beginning with `--` as
 options; it needs `grep -F --`.
