@@ -632,6 +632,18 @@ did not write, so upgrading would have silently cost him `hs -c "return dd.versi
 bridge is now part of the block **by default**, `--no-ipc` leaves it out, and the default
 block is line-for-line what he had plus `dd.repoRoots`.
 
+**Run for real on `cornillon-laptop`, 2026-08-18 16:35 EDT.** The twelve hand-written
+lines were backed up to `init.lua.hand-install.bak`, the file emptied, and `./install.sh`
+run: block written, Hammerspoon restarted. Verified against the **running** instance
+rather than the file — `hs -c "return dd.version"` returned `v65`, and
+`hs -c "return hs.inspect(dd.repoRoots)"` returned `{ "/Users/petercornillon/Git_Repos" }`,
+which proves both the bridge and `dd.repoRoots` survive the round trip. `--check` reports
+fully wired.
+
+**A seventh case, found there:** appending to an *empty* `init.lua` left two stray blank
+lines above the block. An empty or whitespace-only file is a blank sheet, not somebody's
+configuration, and is now written rather than appended to.
+
 **One bug found and fixed in the writing:** `--check` reported "no claude-switchboard
 block" on a file that had one. `grep -F "-- >>> …"` reads a pattern beginning with `--` as
 options; it needs `grep -F --`.

@@ -155,12 +155,14 @@ import os, re, shutil
 init, block = os.environ["INIT"], os.environ["BLOCK"]
 a, b = os.environ["MARK_A"], os.environ["MARK_B"]
 
-if not os.path.exists(init):
-    open(init, "w").write(block + "\n")
-    print("WRITE created %s with the claude-switchboard block" % init)
-    raise SystemExit(0)
+body = open(init, encoding="utf-8").read() if os.path.exists(init) else ""
 
-body = open(init, encoding="utf-8").read()
+# An empty or whitespace-only file is not "someone's config to append to" — it is a
+# blank sheet, and appending to it leaves stray blank lines at the top.
+if not body.strip():
+    open(init, "w").write(block + "\n")
+    print("WRITE wrote %s with the claude-switchboard block" % init)
+    raise SystemExit(0)
 
 # A hand-written loader from an earlier install would run alongside ours: package.path
 # set twice, dd.start() called twice. Refuse rather than quietly double it.
