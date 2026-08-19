@@ -76,15 +76,6 @@ dot*, below); everything else on the panel works regardless.
    restarted Hammerspoon
    ```
 
-   **An `init.lua` you already had is kept.** Hotkeys, window rules, anything of yours:
-   the block goes below them, after a backup. The block sits between two markers, so
-   running the script again replaces it rather than adding a second copy — re-run it
-   after a `git pull`, or after moving the repo.
-
-   **The one case where it stops rather than writes** is an `init.lua` that already loads
-   this panel, from an older install by hand. It lists those lines and does nothing else.
-   That is what step 5 is for; everyone else can ignore step 5 entirely.
-
    Two options, if you want them:
 
    ```sh
@@ -97,15 +88,21 @@ dot*, below); everything else on the panel works regardless.
    the block by default: it lets you ask the running panel questions — `hs -c "return
    dd.version"` — and `--no-ipc` leaves it out.
 
-5. **Replacing an older install by hand.**
+5. **Updating an earlier install: `~/.hammerspoon/init.lua` may need replacing.**
 
-   - **Skip this if you have never installed claude-switchboard before.**
+   **An `init.lua` you already had is kept.** Hotkeys, window rules, anything of yours:
+   step 4 puts its block below them, after a backup. The block sits between two markers,
+   so running the script again replaces that block rather than adding a second copy —
+   which is what makes it safe to re-run after a `git pull`, or after moving the repo.
+
+   **The one case where step 4 stops rather than writes** is an `init.lua` that already
+   loads this panel from an install done by hand. Rather than set `package.path` twice
+   and start the panel twice, it lists those lines and does nothing else.
+
+   - **Skip the rest of this step if you have never installed claude-switchboard before.**
    - **Skip it if you have never edited `~/.hammerspoon/init.lua` yourself.**
 
-   Anyone still here: step 4 stopped rather than wrote, and listed the loader lines it
-   found in your `init.lua`. They are from an earlier install by hand, and adding the
-   block alongside them would set `package.path` twice and start the panel twice. One
-   command replaces them:
+   Anyone still here: one command replaces those lines.
 
    ```sh
    ./install.sh --upgrade
