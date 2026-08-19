@@ -1,230 +1,190 @@
 # Installing Claude Switchboard
 
-How to install and run Claude Switchboard on a machine. Do this on each Mac where you want
-it (yours or a colleague's).
+How to install Claude Switchboard. Do this once on each Mac you want the panel on.
 
-**Two of these steps a person has to do**, because macOS won't let software grant itself
-permissions or click menu-bar items: granting Accessibility (step 2), and looking at the
-screen to confirm the panel appeared (step 5). Everything else can be done for you — see
-*[Let Claude Code install it](README.md#let-claude-code-install-it)*.
+## Who this is for
 
-## Requirements
+Claude Switchboard watches the `claude` sessions you have running and shows, on one
+always-visible panel, what each of them is doing. It is for you if you run Claude Code:
 
-- macOS (built and used on an Intel Mac; should work on Apple Silicon too).
-- [Hammerspoon](https://www.hammerspoon.org) — free, open‑source, notarized.
-  **No SIP changes required.**
-- `git`, for the git dot. Any Xcode Command Line Tools install provides it.
-- **Nothing else.** The hook needs no `jq` and no other tool as of `v56`; it uses `awk` and
-  bash, both of which macOS ships. (Before that it needed `jq` and failed *silently* without
-  it — if you are running an older copy, that is why your red dot never lights.)
+- in a **terminal window** — either **Terminal**, the one macOS comes with, or
+  **iTerm2**; or
+- inside **VS Code**, **Cursor**, or another editor that hosts Claude Code.
 
-**Which terminal you run `claude` in matters, but less than it used to.** Sessions get a
-**Desktop line** from **Terminal.app and iTerm2** — the two whose AppleScript reports windows
-for Spaces you are not looking at, which is what placing a session on a Desktop requires. A
-session in Ghostty, kitty or Cursor's built-in terminal still appears in the **`T#` sessions
-list**, drawn from its hook state file — project, dot, question, and which terminal it is in
-— but with no Desktop attached. That half needs the hook installed (see *Optional: the red
-dot*, below); everything else on the panel works regardless.
+All of those work. Sessions in Terminal and iTerm2 are the ones the panel can read most
+directly, so they always land on the right Desktop line; everywhere else the panel learns
+about the session from Claude Code itself, which is what step 6 sets up.
 
-## Steps
+**It is most useful if you keep several Desktops.** A Desktop (macOS also calls them
+Spaces) is a full-screen workspace you switch between with Control-→ and Control-←. If you
+have only one or two, the panel still works — but the problem it solves is *"which of my
+six sessions stopped to ask me something"*, and that only shows up once you spread work
+across Desktops. To add one: press **Control-↑** for Mission Control, then click the **+**
+at the top right.
 
-1. **Install Hammerspoon**
+## What you need first
 
-   ```sh
-   brew install --cask hammerspoon
-   ```
+- **macOS.** Built and used on an Intel Mac; it should be fine on Apple Silicon.
+- **[Hammerspoon](https://www.hammerspoon.org)** — free, open-source, notarized by Apple.
+  Step 1 installs it. **It does not require turning off any macOS security setting.**
+- **`git`.** You almost certainly have it; if `git --version` prints a version in a
+  terminal window, you are set.
+- **Nothing else to install.**
 
-   (or download from https://www.hammerspoon.org). Launch it once.
+**Two of the six steps only you can do**, because macOS will not let software grant itself
+permissions, and because nothing but a person can look at a screen and say whether a panel
+appeared: those are **step 2** and **step 5**. A Claude Code session can do the rest for
+you — see *[Let Claude Code install it](README.md#let-claude-code-install-it)*.
 
-2. **Grant Accessibility permission** — 🧑 **you must do this yourself.** macOS deliberately
-   prevents software from granting this on its own. System Settings → Privacy & Security →
-   Accessibility → enable **Hammerspoon**. This is what lets the tool read window titles; it
-   is a normal per‑app permission (the same one Rectangle, Moom, etc. use) and is *not*
-   related to disabling SIP.
+## The installation
 
-   The reliable test is step 5: without this permission the panel still loads and lists your
-   Desktops, but every label comes out blank or `—`.
+### Step 1 — Install Hammerspoon
 
-3. **Clone the repo** — put it wherever you keep your projects. From that folder:
+In a terminal window:
 
-   ```sh
-   git clone https://github.com/pcornillon/claude-switchboard.git
-   ```
+```sh
+brew install --cask hammerspoon
+```
 
-   `git clone` creates the `claude-switchboard` folder itself, so there's no destination to
-   name. Put it anywhere — step 4 works out where it landed, and where you keep repos,
-   without being told.
+If you don't use Homebrew, download it from https://www.hammerspoon.org instead. Either
+way, **launch Hammerspoon once** before going on.
 
-4. **Wire it up.** From the repo you just cloned:
+### Step 2 — Let Hammerspoon see your windows 🧑
 
-   ```sh
-   ./install.sh
-   ```
+**This one is yours to do.** Open **System Settings → Privacy & Security → Accessibility**
+and switch **Hammerspoon** on.
 
-   It works out both paths itself — the repo's, from where the script sits, and where you
-   keep repositories, from the repo's parent — writes them into `~/.hammerspoon/init.lua`,
-   and restarts Hammerspoon. It asks nothing and prints what it did:
+This is the ordinary per-app permission that window tools like Rectangle and Moom also ask
+for. It is what lets the panel read which windows are on which Desktop. Without it the
+panel still appears, but every Desktop comes out blank or `—`.
 
-   ```
-   repo:   /Users/you/Git_Repos/claude-switchboard
-   repos:  /Users/you/Git_Repos
-   target: /Users/you/.hammerspoon/init.lua
+### Step 3 — Download Claude Switchboard
 
-   OK   Hammerspoon is installed
-   WRITE created /Users/you/.hammerspoon/init.lua with the claude-switchboard block
+**Put it beside your other projects.** The panel watches one folder and treats each folder
+directly inside it as a project — so the simplest arrangement is a single folder holding
+all your git repositories, with this one among them.
 
-   restarted Hammerspoon
-   ```
+**If you don't already have such a folder, make one now:**
 
-   Two options, if you want them:
+```sh
+mkdir -p ~/Git_Repos
+cd ~/Git_Repos
+```
 
-   ```sh
-   ./install.sh --repos ~/work/repos --repos ~/Dropbox/projects   # repos live elsewhere
-   ./install.sh --no-ipc                                          # skip the shell bridge
-   ```
+Any name works, but `Git_Repos` is the one I use, and using the same one makes life easier
+if you ever end up sorting out a problem with me — the paths in your setup and in my notes
+will match. If you already keep projects together somewhere else, go there instead; step 4
+will find it either way. If they are spread over several places, see
+*[Less usual cases](#less-usual-cases)*.
 
-   `--repos` matters only if you keep repositories somewhere other than the folder this
-   repo sits in. The shell bridge is `require("hs.ipc")` and `_G.dd = dd`, written into
-   the block by default: it lets you ask the running panel questions — `hs -c "return
-   dd.version"` — and `--no-ipc` leaves it out.
+From that folder:
 
-5. **Updating an earlier install: `~/.hammerspoon/init.lua` may need replacing.**
+```sh
+git clone https://github.com/pcornillon/claude-switchboard.git
+```
 
-   **An `init.lua` you already had is kept.** Hotkeys, window rules, anything of yours:
-   step 4 puts its block below them, after a backup. The block sits between two markers,
-   so running the script again replaces that block rather than adding a second copy —
-   which is what makes it safe to re-run after a `git pull`, or after moving the repo.
+That creates a folder called `claude-switchboard`. Move into it:
 
-   **The one case where step 4 stops rather than writes** is an `init.lua` that already
-   loads this panel from an install done by hand. Rather than set `package.path` twice
-   and start the panel twice, it lists those lines and does nothing else.
+```sh
+cd claude-switchboard
+```
 
-   - **Skip the rest of this step if you have never installed claude-switchboard before.**
-   - **Skip it if you have never edited `~/.hammerspoon/init.lua` yourself.**
+### Step 4 — Run the installer
 
-   Anyone still here: one command replaces those lines.
+From inside that folder:
 
-   ```sh
-   ./install.sh --upgrade
-   ```
+```sh
+./install.sh
+```
 
-   It backs your `init.lua` up to `init.lua.pre-switchboard.bak`, prints every line it
-   removes, and writes the block in their place. **Only the old install is removed** —
-   loader lines, and comments sitting against them. Hotkeys, window rules and anything
-   else you keep in that file stay exactly where they are.
+That is the whole step. It asks nothing, works out the paths itself, and tells you what it
+did:
 
-6. **Look at the screen.** 🧑 This part is yours: the panel is an on-screen overlay, and a
-   script cannot see it.
+```
+this tool:         /Users/you/Git_Repos/claude-switchboard
+your repositories: /Users/you/Git_Repos
+configuring:       /Users/you/.hammerspoon/init.lua
 
-   The panel should be in a corner, and the Hammerspoon Console should say
-   `desktop_dashboard vNN … loaded`.
+OK   Hammerspoon is installed
+WRITE created /Users/you/.hammerspoon/init.lua with the claude-switchboard block
+restarted Hammerspoon
+```
 
-   **If every Desktop label is blank or `—`**, Hammerspoon does not have Accessibility
-   permission — go back to step 2. That is the one failure that looks like a bug and is
-   not.
+The three paths are what it worked out for itself, and the middle one is the only one worth
+a look. **`your repositories` is the folder the panel will watch**, and it is simply the
+folder you cloned into in step 3 — every folder directly inside it counts as a project.
+Nothing about the name matters; this is only what that line looks like if you followed step 3.
 
-   You can also ask the running panel directly, which is a stronger check than reading the
-   file — it answers only if the code really loaded:
+If your projects live somewhere else, or in more than one place, or you have set Hammerspoon
+up by hand before, see *[Less usual cases](#less-usual-cases)* at the end. Most people need
+nothing from there.
 
-   ```sh
-   hs -c "return dd.version"
-   ```
+### Step 5 — Look at the screen 🧑
 
-   To ask later whether this machine is still wired up, without changing anything:
+**This one is yours too:** the panel is an overlay drawn on your screen, and a script
+cannot see it.
 
-   ```sh
-   ./install.sh --check
-   ```
+You should see a translucent panel in a corner of the screen, listing your Desktops.
 
-## Optional: the red dot (Claude Code hooks)
+**If every Desktop label is blank or `—`**, Hammerspoon does not have the permission from
+step 2. Go back and grant it. That is the one failure that looks like a bug and isn't.
 
-The yellow and green dots work out of the box. **Red** — "this session is asking you
-something" — needs Claude Code to tell us, because a session blocked on a question puts
-exactly the same thing in its terminal title as one that has finished.
+**If there is no panel at all**, open the Hammerspoon Console from the hammer icon in the
+menu bar; it should carry a line reading `desktop_dashboard vNN … loaded`.
 
-**Nothing here is manual.** One command, from the repo, and it does the whole job:
+### Step 6 — Turn on the red dot
+
+The panel gives each session a colored dot: **yellow** while it is working, **green** when it has
+finished, and **red** when it has stopped to ask you something. Red is the one you actually
+want, and it is the one that needs a moment of setup — from the outside, a session waiting
+on a question looks exactly like one that is done.
+
+From the `claude-switchboard` folder:
 
 ```sh
 ./install.sh --hooks
 ```
 
-It copies `claude-dashboard-state.sh` to `~/.claude/`, then registers it on five Claude
-Code events in `~/.claude/settings.json`. That file usually holds your permissions and
-whatever hooks you already run, so it is **merged, never replaced**: the script backs it
-up to `settings.json.pre-switchboard.bak`, adds its five entries alongside anything
-already there, and refuses to touch the file at all if it does not already parse as JSON.
-It writes to a temporary file and parses that before moving it into place — malformed
-JSON there silently disables *every* setting in the file, permissions and all, with no
-error anywhere.
+That teaches Claude Code to tell the panel what your sessions are doing. Your existing
+Claude Code settings are backed up first and added to, never replaced, and running the
+command twice is harmless — it will just say everything is already registered.
 
-Run it twice and the second run reports `the red-dot hook is already registered (5
-event(s)) — nothing added`. If `~/.claude/settings.json` is a symlink — to a configuration
-repo, or a synced folder — it says so and names the file it is really editing.
+**Claude Code reads this setting when a session starts**, so sessions you already have
+running won't have it. Start a new one.
 
-**The five events are not interchangeable.** `SessionStart` is the one people leave off by
-hand, and it is the one that makes a session visible before you have typed anything:
-without it, a session in a terminal the panel cannot read directly — Ghostty, kitty,
-Cursor — appears nowhere until your first prompt.
-
-**One thing the script cannot do for you:** Claude Code reads its hook configuration when
-a session starts, so sessions already running will not have it. Start a new one.
-
-**Check it:** `ls ~/.hammerspoon/claude_state/` should show one JSON file per live session
-as soon as that session starts. If nothing appears, open `/hooks` in Claude Code once
-(that reloads the configuration) or restart the session.
-
-The script writes only to `~/.hammerspoon/claude_state/`, exits 0 unconditionally, and
-does nothing at all on a machine with no `~/.hammerspoon` — so these settings are safe to
-sync across machines.
-
-## Doing step 4 by hand
-
-`install.sh` writes this into `~/.hammerspoon/init.lua`, and nothing else:
-
-```lua
--- >>> claude-switchboard >>>
-package.path = package.path .. ";" .. "/absolute/path/to/claude-switchboard/?.lua"
-require("hs.ipc")                       -- omitted with --no-ipc
-local dd = require("desktop_dashboard")
-_G.dd = dd                              -- omitted with --no-ipc
-dd.repoRoots = {
-  "/absolute/path/to/where/you/keep/repos",
-}
-dd.start()
--- <<< claude-switchboard <<<
-```
-
-Write it yourself if you prefer; `init.lua.example` is the same thing with its reasoning.
-Two things to know if you go this way:
-
-- **`dd.repoRoots` is why `desktop_dashboard.lua` never needs editing.** It overrides the
-  `~/Git_Repos` default in the module, after `require` and before `dd.start()`, so a
-  `git pull` cannot conflict with your own configuration.
-- **An old copy at `~/.hammerspoon/desktop_dashboard.lua` wins over the repo**, because
-  `require` looks there first. Move it aside. `install.sh` does this for you and says so.
-
-Reload Hammerspoon afterwards — the menu-bar hammer → **Reload Config**, or from a shell:
-
-```sh
-osascript -e 'quit app "Hammerspoon"'; /bin/sleep 3; open -a Hammerspoon
-```
-
-(`/bin/sleep` rather than plain `sleep` — some agent setups block the latter.)
-
+**To check it worked:** with a session running, `ls ~/.hammerspoon/claude_state/` should
+list one file per live session.
 
 ## First run
 
-Press **⌘⌃⌥s** once to walk every Desktop and label them all. After that it keeps itself
-up to date on its own.
+Press **⌘⌃⌥s** once. The panel walks through every Desktop and labels them all — it has to
+visit a Desktop to see what is on it, which is a macOS restriction, not a choice. After
+that it keeps itself up to date on its own.
 
-## Testing
+## If something looks wrong
 
-A scripted way to watch all three dot colors happen on cue.
+- **No panel, or everything blank:** Hammerspoon is missing the Accessibility permission
+  from step 2. Grant it, then click the menu-bar hammer → **Reload Config**.
+- **A Desktop stays unlabeled until you go to it:** expected. macOS only lets an app read a
+  Desktop's windows while that Desktop is active. Press **⌘⌃⌥s** to fill them all in.
+- **The version in the Console is older than you expect,** or behavior seems stale: an old
+  copy of the tool is sitting in `~/.hammerspoon/desktop_dashboard.lua` and taking
+  precedence. Delete it and reload.
+- **To ask whether this machine is still set up correctly**, without changing anything:
 
-**Set up:** open a terminal on a Desktop of its own, `cd` into a repo under your
-`M.repoRoots`, and start `claude` there. Confirm that Desktop's line shows the repo name.
-Then **switch to a different Desktop** and keep the panel in view — the point is watching a
-session you can't see. Paste the prompt below into that session.
+  ```sh
+  ./install.sh --check
+  ```
+
+## Watching the dots change, on purpose
+
+A short rehearsal that makes all three dot colors happen on cue — worth doing once, so you
+know what you are looking at later.
+
+**Set it up:** open a terminal on a Desktop of its own, `cd` into one of your repositories,
+and start `claude` there. Check that that Desktop's line on the panel shows the repository
+name. Then **switch to a different Desktop** and keep the panel in view — the whole point is
+watching a session you cannot see. Paste the prompt below into that session.
 
 ````text
 I am testing a status dashboard that watches Claude Code sessions. This is a scripted
@@ -266,31 +226,116 @@ The waits are the thing being measured, so do not shorten or skip them.
 | after `done` | 🟢 green — finished, unseen |
 | when you switch to that Desktop | *(no dot)* — acknowledged |
 
-Notes:
+A few notes:
 
-- **Steps 2 and 4 test different things.** A question box and a permission prompt are
-  separate mechanisms; both should turn the dot red.
-- **Step 4 assumes `rm` needs approval on your setup.** If your `permissions` settings
-  auto-allow it, substitute any command yours does ask about.
-- **Red only appears if the hooks are installed** (previous section). Without them steps 2
-  and 4 show green instead of red; everything else is the same.
-- If the dot never appears at all, the Desktop probably isn't labeled with the repo name —
-  press ⌘⌃⌥s and check the line reads the repo, not `Utility` or an app name.
+- **Steps 2 and 4 are testing different things.** A question and a permission prompt are
+  separate mechanisms inside Claude Code; both should turn the dot red.
+- **Step 4 assumes `rm` asks your permission.** If your settings allow it automatically,
+  use any command yours does ask about.
+- **Red only appears if you did step 6.** Without it, steps 2 and 4 show green instead;
+  everything else is the same.
+- If no dot appears at all, that Desktop probably isn't labeled with the repository name —
+  press **⌘⌃⌥s** and check that the line reads the repository, not `Utility` or an app name.
 
-## Configuration
+## Less usual cases
 
-Everything is in the `CONFIG` block at the top of `desktop_dashboard.lua`. The one that
-matters on a new machine, `M.repoRoots`, is already handled: `install.sh` writes it into
-`~/.hammerspoon/init.lua` as `dd.repoRoots`, which overrides the default without editing a
-tracked file. Re-run `./install.sh --repos DIR` to change it. The rest — `M.categories`,
-`M.docApps` and the like — are edited in `desktop_dashboard.lua` itself; see the
-Configuration section of `README.md` for the full list.
+Most people never need this section.
 
-## Troubleshooting
+### Your repositories are somewhere else
 
-- **No panel / everything blank:** confirm Accessibility is enabled for Hammerspoon
-  (step 2), then Reload Config.
-- **Wrong version in the Console (or old behavior):** an old copy is shadowing the repo —
-  remove `~/.hammerspoon/desktop_dashboard.lua` (step 4 note) and reload.
-- **A Desktop won't label until you visit it:** expected — macOS only lets an app read a
-  Desktop's windows while it's active. Press ⌘⌃⌥s to fill them all in.
+By default, step 4 watches the folder `claude-switchboard` sits in. If your projects are
+elsewhere, name the folder — and you can name more than one:
+
+```sh
+./install.sh --repos ~/work/repos --repos ~/Dropbox/projects
+```
+
+**Each folder you name is read one level deep.** A project has to sit directly inside it —
+`~/work/repos/my-analysis` is found, `~/work/repos/2026/my-analysis` is not. Re-run the
+command with different folders whenever this changes; it replaces the setting rather than
+adding to it.
+
+### You already had a Hammerspoon setup
+
+**Anything already in `~/.hammerspoon/init.lua` is kept.** Step 4 backs the file up and
+adds its own block below whatever you had. That block sits between two marker comments, so
+running `./install.sh` again replaces the block rather than adding a second copy — which is
+what makes it safe to re-run after a `git pull`.
+
+**One case stops the installer:** an `init.lua` that already loads this panel from an
+earlier installation you did by hand. Rather than start the panel twice, it lists those
+lines and does nothing. Replace them with:
+
+```sh
+./install.sh --upgrade
+```
+
+It backs the file up to `init.lua.pre-switchboard.bak`, prints every line it removes, and
+writes its own block in their place. **Only the old installation lines go** — your hotkeys,
+window rules and everything else stay exactly where they are.
+
+### Other options
+
+<table style="width: 100%; table-layout: fixed;">
+<colgroup>
+<col style="width: 26%;">
+<col style="width: 74%;">
+</colgroup>
+<thead>
+<tr>
+<th align="left">Option</th>
+<th align="left">What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background:transparent;">
+<td><code style="background:transparent; padding:0; border:none; border-radius:0;">--check</code></td>
+<td>Report what is installed on this machine and change nothing.</td>
+</tr>
+<tr style="background:transparent;">
+<td><code style="background:transparent; padding:0; border:none; border-radius:0;">--no-reload</code></td>
+<td>Don't restart Hammerspoon at the end; you will restart it yourself.</td>
+</tr>
+<tr style="background:transparent;">
+<td><code style="background:transparent; padding:0; border:none; border-radius:0;">--no-ipc</code></td>
+<td>Leave out the small bridge that lets a command line ask the running panel questions. Harmless either way.</td>
+</tr>
+</tbody>
+</table>
+
+### Setting it up without the installer
+
+`install.sh` writes this into `~/.hammerspoon/init.lua`, and nothing else — you can type it
+yourself if you would rather:
+
+```lua
+-- >>> claude-switchboard >>>
+package.path = package.path .. ";" .. "/absolute/path/to/claude-switchboard/?.lua"
+require("hs.ipc")                       -- omitted with --no-ipc
+local dd = require("desktop_dashboard")
+_G.dd = dd                              -- omitted with --no-ipc
+dd.repoRoots = {
+  "/absolute/path/to/where/you/keep/repos",
+}
+dd.start()
+-- <<< claude-switchboard <<<
+```
+
+`init.lua.example` is the same thing with its reasoning. Two things to know:
+
+- **Setting `dd.repoRoots` here is why you never edit `desktop_dashboard.lua`.** It
+  overrides the default inside the tool, so a `git pull` can't collide with your own
+  settings.
+- **An old copy at `~/.hammerspoon/desktop_dashboard.lua` wins over the repository**, so
+  move any such file aside.
+
+Then reload Hammerspoon — the menu-bar hammer → **Reload Config**, or:
+
+```sh
+osascript -e 'quit app "Hammerspoon"'; /bin/sleep 3; open -a Hammerspoon
+```
+
+### Changing anything else
+
+The rest of the settings live in the `CONFIG` block at the top of `desktop_dashboard.lua`;
+the Configuration section of `README.md` lists them.

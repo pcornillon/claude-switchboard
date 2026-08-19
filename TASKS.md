@@ -661,3 +661,50 @@ options; it needs `grep -F --`.
 live and his `~/.claude/settings.json` is a symlink into `claude-config`, where the
 dashboard hook is already registered — `--hooks` would correctly report it as present, but
 that is his call to make, not this session's.
+
+## Task #20 — Rewrite `INSTALL.md` for a reader who does not live in a terminal
+
+**Status:** done (2026-08-19) — rewritten 2026-08-18 23:08 EDT, then four rounds of
+refinement with Peter reading it, committed on his word.
+
+Answers the complaint that closed Task #19: the structure was right and the volume was
+not. **The audience was named for the first time in this prompt** — physical
+oceanographers and other long-time Mac users who do not work in a terminal, and who run
+two Desktops because they have two screens.
+
+**Cut from the numbered path:** `hs.ipc` and `_G.dd` (named as meaningless to Peter, so
+certainly to the reader), the `hs -c "return dd.version"` check, the `jq` history in the
+requirements, the five-events paragraph and the `settings.json` JSON-safety paragraph, and
+the *"Which terminal you run `claude` in matters, but less than it used to"* paragraph,
+which Peter singled out as confusing.
+
+**Restructured:** a *Who this is for* section opens with the four ways people actually run
+Claude Code and says all of them work. Step 4 is one command with no options in view —
+`--repos`, `--upgrade`, `--check`, `--no-reload`, `--no-ipc` and the by-hand block all sit
+under *Less usual cases*, which opens "Most people never need this section." The old step 5
+(everything about an existing `init.lua`) leaves the numbered path; looking at the screen
+takes its number; the red dot becomes step 6 rather than an "Optional:" heading, because it
+is the dot the panel is worth having.
+
+**Added, against the instruction to shorten:** a paragraph on what a Desktop is, how to add
+one (Control-↑, then **+**), and why the panel only earns its keep once work is spread
+across several. It makes the two-Desktop observation actionable.
+
+**Three things came out of Peter reading it:**
+
+1. **`repo:` / `repos:` / `target:` was the one confusing thing left**, and it was the
+   script's output, not the doc's prose — two labels one letter apart naming unrelated
+   things. `install.sh:58-60` now prints `this tool:` / `your repositories:` /
+   `configuring:`.
+2. **The doc implied `Git_Repos` was required, and my step 3 was wrong.** It said the home
+   folder would do; `loadRepos` (`desktop_dashboard.lua:763`) reads each root **one level
+   deep**, so that would make `Documents` and `Downloads` projects. The one-level rule is
+   now stated outright in *Less usual cases*, with `~/work/repos/2026/my-analysis` as the
+   case that is not found.
+3. **Peter's answer on the folder:** tell the reader to create one, recommend `Git_Repos`,
+   and say why — matching paths make a problem easier to sort out with him later. Step 3
+   carries `mkdir -p ~/Git_Repos`; step 4's sample went back to `Git_Repos` so it agrees
+   with the step above it.
+
+**No `install.sh` flag or behaviour changed**, so `claude-config-public`'s generated
+"Optional: the session panel" section does not need rebuilding.

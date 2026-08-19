@@ -121,15 +121,24 @@ Remote work: legend words are buttons (D68–D71), the hook raises the alert (D7
 
 ## Active thread — resume here
 
-**NEXT, and it is Peter's live complaint: `INSTALL.md` is still too long.** After four
-rewrites on 2026-08-18 he said *"Still seems like a lot of extra stuff, which will confuse
-a lot of potential users."* The structure is now right — step 4 installs, step 5 is
-everything about an `init.lua` that already exists, step 6 is looking at the screen — but
-the volume is not. **What has already been tried, so it is not re-tried:** conditionals
-inlined in step 4 (confusing), the by-hand alternative kept beside the command (confusing),
-skip-bullets before the cases they refer to (worse). The remaining move is cutting, not
-reordering. A first-time reader needs step 4 and step 6; everything else is for someone
-who already has a working install.
+**`INSTALL.md` is rewritten and committed (Task #20, 2026-08-19), and the complaint that
+had been open since 2026-08-18 is closed.** The reader was named this time — physical
+oceanographers and other long-time Mac users who do not work in a terminal, and who run
+**two Desktops because they have two screens** — and everything followed from that: `hs.ipc`,
+`_G.dd`, the `jq` history and the confusing terminal paragraph out of the numbered path;
+step 4 one command with every option under *Less usual cases*; the red dot promoted to a
+numbered step; and one paragraph added saying what a Desktop is and how to add one.
+
+**Two corrections came from Peter reading it, and both were real bugs in the doc, not
+style.** `install.sh` printed `repo:` / `repos:` / `target:` — now `this tool:` /
+`your repositories:` / `configuring:`. And the doc implied `Git_Repos` was required while
+step 3 suggested the home folder would do; `loadRepos` reads each root **one level deep**,
+so that would have made `Documents` a project. Step 3 now says to create `~/Git_Repos`, and
+the one-level rule is stated in *Less usual cases*.
+
+**Nothing here has been run against the live install** — `./install.sh --check` on this
+machine is still the safe first move, and the relabelled output was verified only under a
+sandbox `HOME`.
 
 **One cross-repo dependency to know before editing `INSTALL.md`:** `claude-config-public`
 carries its own summary of this install, generated from

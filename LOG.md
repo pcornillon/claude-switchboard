@@ -348,3 +348,28 @@ invented index is worse than a short one.
     instance (`hs -c "return dd.version"` → `v65`); `INSTALL.md` restructured twice more —
     step 4 is the install, step 5 is everything about an `init.lua` that already exists.
     `d7e7ba0`, `b0565f1`, `c638f4f`, `86653bd`, `cbd045e`. **Still open: it is too long**
+
+- ★ **P1** `2306_cornillon-laptop` · 2026-08-18 23:06 EDT · `INSTALL.md` is written for the
+  wrong reader — simplify it for someone who does not live in a terminal
+  → rewritten end to end: a *Who this is for* opening naming Terminal / iTerm2 / VS Code /
+    Cursor, a note on what a Desktop is, `hs.ipc` and `_G.dd` out of the numbered path,
+    step 4 one command with every option moved to *Less usual cases*, the red dot promoted
+    to step 6. Task #20
+- **P2** `2306_cornillon-laptop` · 2026-08-18 23:47 EDT · step 4's `repo:` / `repos:` output
+  is confusing
+  → fixed in `install.sh` rather than in the doc — the header lines now print `this tool:` /
+    `your repositories:` / `configuring:`; `INSTALL.md`'s sample block and prose follow.
+    Task #20
+- ★ **P4** `2306_cornillon-laptop` · 2026-08-18 23:52 EDT · must `claude-switchboard` live in
+  `Git_Repos`, and must the other repos?
+  → no, and the doc implied both. Example paths de-`Git_Repos`-ed; **my own step 3 advice
+    ("your home folder is fine") was wrong** and is gone — `loadRepos` reads each root one
+    level deep, so the home folder would make `Documents` a project. The one-level rule is
+    now stated in *Less usual cases*. Task #20
+- **P5** `2306_cornillon-laptop` · 2026-08-18 23:58 EDT · tell the reader to create the
+  folder, and name it `Git_Repos`
+  → step 3 gains `mkdir -p ~/Git_Repos` and the reason (shared paths are easier to debug
+    together); step 4's sample example returns to `Git_Repos` to match it. Task #20
+- **P6** `2306_cornillon-laptop` · 2026-08-19 00:10 EDT · commit it
+  → session log rebuilt with `session-transcript.sh` and its subject lines realigned (the
+    two interrupted prompts count as prompts), then committed

@@ -55,9 +55,9 @@ red() { printf '\033[31m%s\033[0m\n' "$*"; }
 [ -f "$REPO/desktop_dashboard.lua" ] || {
   red "STOP $REPO/desktop_dashboard.lua is missing — is this the repo?"; exit 1; }
 
-echo "repo:   $REPO"
-echo "repos:  ${REPO_ROOTS[*]}"
-echo "target: $INIT"
+echo "this tool:         $REPO"
+echo "your repositories: ${REPO_ROOTS[*]}"
+echo "configuring:       $INIT"
 echo
 
 # ---------------------------------------------------------------------------
