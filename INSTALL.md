@@ -76,29 +76,36 @@ dot*, below); everything else on the panel works regardless.
    restarted Hammerspoon
    ```
 
-   If you already had an `init.lua` of your own, it backs it up and adds the block below
-   what is there. What it writes sits between two markers, so running it again replaces
-   that block instead of adding a second one — re-run it after a `git pull`, or after
-   moving the repo.
+   **An `init.lua` you already had is kept.** Hotkeys, window rules, anything of yours:
+   the block goes below them, after a backup. The block sits between two markers, so
+   running the script again replaces it rather than adding a second copy — re-run it
+   after a `git pull`, or after moving the repo.
 
-   The block also turns on the command-line bridge — `require("hs.ipc")` and `_G.dd = dd`
-   — so you can ask the running panel questions from a shell: `hs -c "return dd.version"`.
-   `--no-ipc` leaves it out. And if you keep repos somewhere other than the folder this
-   one sits in, name it, as many times as you need:
+   **The one case where it stops rather than writes** is an `init.lua` that already loads
+   this panel, from an older install by hand. It lists those lines and does nothing else.
+   That is what step 5 is for; everyone else can ignore step 5 entirely.
+
+   Two options, if you want them:
 
    ```sh
-   ./install.sh --repos ~/work/repos --repos ~/Dropbox/projects
+   ./install.sh --repos ~/work/repos --repos ~/Dropbox/projects   # repos live elsewhere
+   ./install.sh --no-ipc                                          # skip the shell bridge
    ```
+
+   `--repos` matters only if you keep repositories somewhere other than the folder this
+   repo sits in. The shell bridge is `require("hs.ipc")` and `_G.dd = dd`, written into
+   the block by default: it lets you ask the running panel questions — `hs -c "return
+   dd.version"` — and `--no-ipc` leaves it out.
 
 5. **Replacing an older install by hand.**
 
    - **Skip this if you have never installed claude-switchboard before.**
    - **Skip it if you have never edited `~/.hammerspoon/init.lua` yourself.**
 
-   Anyone else: step 4 will have stopped, rather than run, with a list of the loader lines
-   it found in your `init.lua`. They are from an earlier install, and adding the block
-   alongside them would set `package.path` twice and start the panel twice. One command
-   replaces them:
+   Anyone still here: step 4 stopped rather than wrote, and listed the loader lines it
+   found in your `init.lua`. They are from an earlier install by hand, and adding the
+   block alongside them would set `package.path` twice and start the panel twice. One
+   command replaces them:
 
    ```sh
    ./install.sh --upgrade
