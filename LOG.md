@@ -373,3 +373,10 @@ invented index is worse than a short one.
 - **P6** `2306_cornillon-laptop` · 2026-08-19 00:10 EDT · commit it
   → session log rebuilt with `session-transcript.sh` and its subject lines realigned (the
     two interrupted prompts count as prompts), then committed
+- ★ **P7** `2306_cornillon-laptop` · 2026-08-19 00:28 EDT · what should the student run to
+  update an old install?
+  → `git pull`, `./install.sh --check`, then `--upgrade` or plain `install.sh` by what the
+    check reports, then `--hooks` and a fresh session. **`origin/main` was two commits
+    behind the answer**, which was the real blocker
+- **P8** `2306_cornillon-laptop` · 2026-08-19 00:30 EDT · push it
+  → `121194c` pushed to `origin/main`

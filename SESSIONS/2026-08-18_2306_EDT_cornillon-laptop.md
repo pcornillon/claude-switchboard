@@ -333,3 +333,123 @@ looks like if you followed step 3.
 
 _[Bash: CONFIG=$(dirname "$(dirname "$(readlink ~/.claude/commands)")"); echo "$CONFIG"; ls -l …]_
 
+Rebuilding the session log's verbatim sections before committing.
+
+_[Bash: cp SESSIONS/2026-08-18_2306_EDT_cornillon-laptop.md /private/tmp/claude-502/-Users-pete…]_
+
+The rebuild shifted my subject lines — the interrupted prompts count as prompts. Inspecting before fixing.
+
+_[Bash: sed -n '92,110p;150,200p' SESSIONS/2026-08-18_2306_EDT_cornillon-laptop.md]_
+
+_[Bash: python3 - <<'PY' import re p='SESSIONS/2026-08-18_2306_EDT_cornillon-laptop.md' s=open(…]_
+
+_[Bash: python3 - <<'PY' p='SESSIONS/2026-08-18_2306_EDT_cornillon-laptop.md' s=open(p).read() …]_
+
+_[Bash: python3 - <<'PY' p='TASKS.md'; s=open(p).read() s=s.replace("**Status:** doing — rewrit…]_
+
+_[Bash: git add INSTALL.md install.sh LOG.md STATUS.md TASKS.md SESSIONS/2026-08-18_2306_EDT_co…]_
+
+Committed as `121194c`; working tree is clean. I did not push — you said commit, not commit and push.
+
+#### Findings
+
+**What went into the commit:** **INSTALL.md**, **install.sh** (the three relabelled output lines), **LOG.md**, **STATUS.md**, **TASKS.md**, and the new **SESSIONS/2026-08-18_2306_EDT_cornillon-laptop.md**. Nothing else in the tree was touched.
+
+**The session log is a full transcript now.** I ran `session-transcript.sh` before committing, which rebuilt every prompt and response verbatim. It shifted my hand-written subject lines by one entry — **both of your interrupted prompts count as prompts**, so the accidental return became its own `P3` — so I realigned the subjects and `Notes` blocks and renumbered the matching `LOG.md` lines. The Git_Repos question is `P4`, not `P3`.
+
+**Task #20 is `done (2026-08-19)`**, and `STATUS.md`'s active thread now records the complaint as closed rather than open.
+
+**Still not done, and it is the same gap as before:** none of this has been run against your live install. The relabelled output was only verified under a sandbox `HOME`, so `./install.sh --check` on this machine remains the safe first move whenever you want to confirm the real thing.
+
+RESPONSE COMPLETE
+
+## P7 · 2026-08-19 00:28 EDT · what commands should the student run to update his install?
+
+### Prompt
+
+> What commands should my student use to complete the installation on his machine? He has already cloned claude-switchboard but it will need to be updated. And he hs Hammperspoon running. He also has an old version on his computer. Is a git pull enough and then
+
+### Response
+
+Checking what's actually on the remote — that determines whether a `git pull` gets him anything.
+
+_[Bash: git log --oneline -1 origin/main 2>/dev/null; echo "--- unpushed ---"; git log --onelin…]_
+
+_[Bash: grep -n 'M.version' desktop_dashboard.lua | head -3; git remote -v | head -2]_
+
+#### Findings
+
+**First, a blocker on your side: today's commit is not pushed.** `origin/main` is still at `fc4959c`. A `git pull` right now gets him `install.sh` (that was pushed yesterday) but **not** the rewritten `INSTALL.md` and not the `this tool:` / `your repositories:` labels — so he'd be reading the confusing version while you talked him through the new one.
+
+**Then yes, `git pull` plus two commands.** From inside his clone:
+
+```sh
+git pull
+./install.sh --check
+```
+
+`--check` writes nothing. It reports which of two situations he is in, and that decides the next command:
+
+- If it says **`DIFF … loads desktop_dashboard outside the markers too`**, his `init.lua` has an old by-hand install in it. He runs `./install.sh --upgrade`, which backs the file up, prints every line it removes, and writes the new block in place of them.
+- **Anything else** — `MISS … does not exist`, `MISS … has no claude-switchboard block`, or an `OK` that just needs repointing — he runs plain `./install.sh`.
+
+Then, for the red dot:
+
+```sh
+./install.sh --hooks
+```
+
+**Two things that need no action from him**, because the script handles them: an old `~/.hammerspoon/desktop_dashboard.lua` is moved aside to `.stale.bak` automatically (line 144), and Hammerspoon is restarted at the end. That last part matters given it's already running — he does not need to quit it first.
+
+**Afterwards:** his existing `claude` sessions won't have the hook, since Claude Code reads that configuration at session start, so he should start a fresh one. Then **⌘⌃⌥s** to label every Desktop. The Hammerspoon Console should say `desktop_dashboard v65 … loaded` — if it says something older, the stale copy is still winning.
+
+**One thing to check with him first:** if he cloned before 2026-08-12 his folder is probably still called `Desktop_Dashboard`. `git pull` will work (GitHub redirects the old URL) and `install.sh` derives its paths from wherever the folder actually is, so nothing breaks — but the folder name will disagree with everything you say to him. Cleaner to have him `git clone` fresh into `~/Git_Repos/claude-switchboard` and delete the old folder after `install.sh` runs.
+
+**What I have not verified:** none of this has been run on his machine or yours — the sandbox runs are the only evidence. `--check` is safe to run first precisely because it never writes.
+
+#### DECISIONS
+
+- Recommending `--check` before choosing between plain install and `--upgrade`, rather than having him guess from what he remembers installing.
+
+**ASK 1:** Shall I push `121194c` now, so his `git pull` actually gets the rewritten instructions?
+
+RESPONSE COMPLETE
+
+## P8 · 2026-08-19 00:30 EDT · push it
+
+### Prompt
+
+> Ask 1. Yes
+
+### Response
+
+_[Bash: git push origin main 2>&1 | tail -3; echo "---"; git log --oneline -1 origin/main]_
+
+### Notes
+
+**The answer had a blocker in front of it:** `origin/main` was still at `fc4959c`, so the
+student's `git pull` would have brought `install.sh` (pushed 2026-08-18) but neither the
+rewritten `INSTALL.md` nor the relabelled output — he would have been reading the confusing
+version while Peter talked him through the new one. Pushed on Peter's word in P8;
+`origin/main` is `121194c`.
+
+**The sequence given**, and why `--check` comes before the choice rather than after it:
+`git pull`, then `./install.sh --check`, which writes nothing and distinguishes the two
+cases his machine could be in. `DIFF … loads desktop_dashboard outside the markers too`
+means an old by-hand install in `init.lua` and calls for `./install.sh --upgrade`; anything
+else takes plain `./install.sh`. Then `./install.sh --hooks`, a fresh `claude` session
+(Claude Code reads hook configuration at session start), and ⌘⌃⌥s.
+
+**Two things deliberately left out of his instructions, because the script does them:** an
+old `~/.hammerspoon/desktop_dashboard.lua` is moved to `.stale.bak` (`install.sh:144`), and
+Hammerspoon is restarted at the end — he does not have to quit it first, which was worth
+saying since his is already running.
+
+**One thing flagged rather than solved:** a clone older than 2026-08-12 sits in a folder
+called `Desktop_Dashboard` (D92). `git pull` still works through GitHub's redirect and
+`install.sh` derives its paths from wherever the folder is, so nothing breaks — but the name
+disagrees with everything Peter would say to him, so a fresh clone is cleaner.
+
+**Unverified, and said so:** none of this has been run on the student's machine or on
+Peter's. `--check` is the safe first move precisely because it never writes.
+
