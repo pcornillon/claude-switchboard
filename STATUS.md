@@ -121,6 +121,23 @@ Remote work: legend words are buttons (D68–D71), the hook raises the alert (D7
 
 ## Active thread — resume here
 
+**NEXT, and it is Peter's live complaint: `INSTALL.md` is still too long.** After four
+rewrites on 2026-08-18 he said *"Still seems like a lot of extra stuff, which will confuse
+a lot of potential users."* The structure is now right — step 4 installs, step 5 is
+everything about an `init.lua` that already exists, step 6 is looking at the screen — but
+the volume is not. **What has already been tried, so it is not re-tried:** conditionals
+inlined in step 4 (confusing), the by-hand alternative kept beside the command (confusing),
+skip-bullets before the cases they refer to (worse). The remaining move is cutting, not
+reordering. A first-time reader needs step 4 and step 6; everything else is for someone
+who already has a working install.
+
+**One cross-repo dependency to know before editing `INSTALL.md`:** `claude-config-public`
+carries its own summary of this install, generated from
+`claude-config/make-starter.sh` — the "Optional: the session panel" section of its
+`README.md`. It names `./install.sh`, `--check`, `--hooks` and `--upgrade`. If those flags
+or their behaviour change here, that section has to change there, and the starter has to be
+rebuilt and pushed.
+
 **2026-08-18 — installing is one command now (Task #19, D93).** `install.sh` derives the
 repo's path and the repos folder, writes them into a marked block in
 `~/.hammerspoon/init.lua`, moves a stale `~/.hammerspoon/desktop_dashboard.lua` aside, and

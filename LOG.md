@@ -342,3 +342,9 @@ invented index is worse than a short one.
     `--hooks`), `INSTALL.md` steps 3–5 and the red-dot section rewritten around it, the
     by-hand version moved to an appendix. D93, Task #19. Session log here; the verbatim
     transcript is in `claude-config/SESSIONS/2026-08-16_2127_EDT_cornillon-laptop.md`
+- ★ **P31–P36** `2127_cornillon-laptop` · 2026-08-18 18:22–22:05 EDT · the `--check` output;
+  do the upgrade; split step 5; fold it into the starter; step 4 and step 5 conflict
+  → `--upgrade` added and Peter's own `init.lua` migrated, verified against the running
+    instance (`hs -c "return dd.version"` → `v65`); `INSTALL.md` restructured twice more —
+    step 4 is the install, step 5 is everything about an `init.lua` that already exists.
+    `d7e7ba0`, `b0565f1`, `c638f4f`, `86653bd`, `cbd045e`. **Still open: it is too long**

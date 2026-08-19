@@ -33,3 +33,28 @@ hand-merged into `~/.claude/settings.json`.
 **Not run for real on this machine.** Peter's `init.lua` is live and his
 `~/.claude/settings.json` is a symlink into `claude-config` with the hook already
 registered. Left for him.
+
+## P31–P36 · 2026-08-18 18:22–22:05 EDT · the installer meets a real machine
+
+### Notes
+
+Three defects that four sandbox `HOME`s could not show, all found by pointing the script
+at `cornillon-laptop`:
+
+1. **A hand-written loader** in `init.lua` — appending the block would have set
+   `package.path` twice and called `dd.start()` twice. The script refuses; `--upgrade`
+   replaces it.
+2. **The `hs.ipc` bridge was missing from the block.** Peter's `init.lua` had
+   `require("hs.ipc")` and `_G.dd = dd`; upgrading would have silently cost him
+   `hs -c "return dd.version"`. The bridge is now written by default.
+3. **Appending to an empty file** left stray blank lines. An empty file is a blank sheet.
+
+His `init.lua` was migrated in this session — original at `init.lua.hand-install.bak` —
+and verified against the **running** instance rather than the file: `dd.version` → `v65`,
+`dd.repoRoots` → the configured root.
+
+`INSTALL.md` went through four structures. What Peter rejected, in order: conditionals
+inlined in step 4; the by-hand alternative kept beside the command; step 4 describing an
+existing `init.lua` while step 5 said the script stops (a real contradiction — two
+different files, neither named); and skip-bullets placed before the cases they refer to.
+**His verdict on the fourth is that it is still too long**, which is where this leaves off.
