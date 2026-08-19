@@ -11,6 +11,7 @@
 #     ./install.sh --hooks         also register the red-dot hooks with Claude Code
 #     ./install.sh --no-reload     leave Hammerspoon alone; reload it yourself
 #     ./install.sh --no-ipc        leave out the command-line bridge (see below)
+#     ./install.sh --upgrade       replace an older by-hand install in init.lua
 #
 # WHY A MARKED BLOCK. What goes into ~/.hammerspoon/init.lua sits between two comment
 # markers, so a second run REPLACES it rather than appending a second copy. That is what
@@ -32,13 +33,14 @@ STALE="$HS_DIR/desktop_dashboard.lua"
 MARK_A="-- >>> claude-switchboard >>>"
 MARK_B="-- <<< claude-switchboard <<<"
 
-CHECK_ONLY=0; DO_HOOKS=0; RELOAD=1; IPC=1; REPO_ROOTS=()
+CHECK_ONLY=0; DO_HOOKS=0; RELOAD=1; IPC=1; UPGRADE=0; REPO_ROOTS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)     CHECK_ONLY=1; shift ;;
     --hooks)     DO_HOOKS=1; shift ;;
     --no-reload) RELOAD=0; shift ;;
     --no-ipc)    IPC=0; shift ;;
+    --upgrade)   UPGRADE=1; shift ;;
     --repos)     REPO_ROOTS+=("${2:?--repos needs a directory}"); shift 2 ;;
     -h|--help)   sed -n '2,20p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
@@ -148,7 +150,7 @@ fi
 # Write the block: create, replace between the markers, or append.
 # ---------------------------------------------------------------------------
 mkdir -p "$HS_DIR" 2>/dev/null
-export BLOCK MARK_A MARK_B INIT
+export BLOCK MARK_A MARK_B INIT UPGRADE
 python3 - <<'PY'
 import os, re, shutil
 
@@ -159,27 +161,75 @@ body = open(init, encoding="utf-8").read() if os.path.exists(init) else ""
 
 # An empty or whitespace-only file is not "someone's config to append to" — it is a
 # blank sheet, and appending to it leaves stray blank lines at the top.
-if not body.strip():
+def write_fresh():
     open(init, "w").write(block + "\n")
     print("WRITE wrote %s with the claude-switchboard block" % init)
+
+if not body.strip():
+    write_fresh()
     raise SystemExit(0)
 
 # A hand-written loader from an earlier install would run alongside ours: package.path
 # set twice, dd.start() called twice. Refuse rather than quietly double it.
 outside = re.sub(re.escape(a) + r".*?" + re.escape(b), "", body, flags=re.S)
-if "desktop_dashboard" in outside and not os.environ.get("SWITCHBOARD_FORCE"):
-    print("STOP  %s already loads desktop_dashboard outside our markers:" % init)
-    for line in outside.splitlines():
-        if "desktop_dashboard" in line:
-            print("        %s" % line.strip())
-    print("      Those lines are an earlier install by hand. Delete them and re-run —")
-    print("      or re-run with SWITCHBOARD_FORCE=1 to add ours anyway, which starts it twice.")
-    raise SystemExit(1)
 
 bak = init + ".pre-switchboard.bak"
+if "desktop_dashboard" in outside and not os.environ.get("SWITCHBOARD_FORCE"):
+    if os.environ.get("UPGRADE") != "1":
+        print("STOP  %s already loads desktop_dashboard outside our markers:" % init)
+        for line in outside.splitlines():
+            if "desktop_dashboard" in line:
+                print("        %s" % line.strip())
+        print("      That is an earlier install by hand. Re-run with --upgrade to replace it")
+        print("      (your file is backed up first), or delete those lines yourself.")
+        print("      SWITCHBOARD_FORCE=1 adds ours alongside, which starts the panel twice.")
+        raise SystemExit(1)
+
+    # --upgrade: take out the by-hand install, and only that. A line goes if it is
+    # loader code or a comment naming this tool; anything else in the file is left
+    # exactly where it is.
+    OWN = ("desktop_dashboard", "desktop dashboard", "claude-switchboard",
+           "claude switchboard", "hs.ipc", "dd.version", "dd.start()", "_g.dd",
+           "reporoots")
+    if not os.path.exists(bak):
+        shutil.copy2(init, bak)
+        print("note  backed up your init.lua -> %s" % os.path.basename(bak))
+
+    src = body.splitlines()
+    drop = set(i for i, ln in enumerate(src) if any(t in ln.lower() for t in OWN))
+    # A comment sitting against a dropped line belongs to it — "-- Load Claude
+    # Switchboard from its repo" names nothing this list matches, and leaving it
+    # behind is how an upgrade ends up looking like a botch.
+    grew = True
+    while grew:
+        grew = False
+        for i, ln in enumerate(src):
+            if i in drop or not ln.strip().startswith("--"):
+                continue
+            if (i - 1) in drop or (i + 1) in drop:
+                drop.add(i); grew = True
+
+    for i in sorted(drop):
+        print("       - %s" % src[i].strip())
+    print("WRITE removed %d line(s) of by-hand install" % len(drop))
+
+    kept, blanks = [], 0
+    for i, ln in enumerate(src):
+        if i in drop:
+            continue
+        blanks = blanks + 1 if not ln.strip() else 0
+        if blanks < 2:                       # no runs of blank lines where it was
+            kept.append(ln)
+    body = "\n".join(kept).strip("\n")
+    outside = body
+
 if not os.path.exists(bak):
     shutil.copy2(init, bak)
     print("note  backed up your init.lua -> %s" % os.path.basename(bak))
+
+if not body.strip():                  # --upgrade emptied it
+    write_fresh()
+    raise SystemExit(0)
 
 pat = re.compile(re.escape(a) + r".*?" + re.escape(b), re.S)
 if pat.search(body):

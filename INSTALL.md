@@ -76,27 +76,40 @@ dot*, below); everything else on the panel works regardless.
    restarted Hammerspoon
    ```
 
-   If you already had an `init.lua`, it says `backed up your init.lua` and `appended the
-   claude-switchboard block; your own config is untouched` instead. What it writes sits
-   between two markers, so running it again replaces that block rather than adding a
-   second one — re-run it after a `git pull`, or after moving the repo.
+   If you already had an `init.lua` of your own, it backs it up and adds the block below
+   what is there. What it writes sits between two markers, so running it again replaces
+   that block instead of adding a second one — re-run it after a `git pull`, or after
+   moving the repo.
 
-   The block it writes also turns on the command-line bridge — `require("hs.ipc")` and
-   `_G.dd = dd` — so you can query the running panel from a shell: `hs -c "return
-   dd.version"`. Pass `--no-ipc` if you would rather not have it.
-
-   **Wired it up by hand once before?** The script refuses rather than start the panel
-   twice: it names the loader lines it found in your `init.lua` and asks you to delete
-   them first. Do that, re-run, and your old hand-written lines are replaced by the block.
-
-   Keep repos somewhere other than the parent of this one? Name it, as many times as you
-   need:
+   The block also turns on the command-line bridge — `require("hs.ipc")` and `_G.dd = dd`
+   — so you can ask the running panel questions from a shell: `hs -c "return dd.version"`.
+   `--no-ipc` leaves it out. And if you keep repos somewhere other than the folder this
+   one sits in, name it, as many times as you need:
 
    ```sh
    ./install.sh --repos ~/work/repos --repos ~/Dropbox/projects
    ```
 
-5. **Look at the screen.** 🧑 This part is yours: the panel is an on-screen overlay, and a
+5. **Replacing an older install by hand.**
+
+   - **Skip this if you have never installed claude-switchboard before.**
+   - **Skip it if you have never edited `~/.hammerspoon/init.lua` yourself.**
+
+   Anyone else: step 4 will have stopped, rather than run, with a list of the loader lines
+   it found in your `init.lua`. They are from an earlier install, and adding the block
+   alongside them would set `package.path` twice and start the panel twice. One command
+   replaces them:
+
+   ```sh
+   ./install.sh --upgrade
+   ```
+
+   It backs your `init.lua` up to `init.lua.pre-switchboard.bak`, prints every line it
+   removes, and writes the block in their place. **Only the old install is removed** —
+   loader lines, and comments sitting against them. Hotkeys, window rules and anything
+   else you keep in that file stay exactly where they are.
+
+6. **Look at the screen.** 🧑 This part is yours: the panel is an on-screen overlay, and a
    script cannot see it.
 
    The panel should be in a corner, and the Hammerspoon Console should say
@@ -105,6 +118,13 @@ dot*, below); everything else on the panel works regardless.
    **If every Desktop label is blank or `—`**, Hammerspoon does not have Accessibility
    permission — go back to step 2. That is the one failure that looks like a bug and is
    not.
+
+   You can also ask the running panel directly, which is a stronger check than reading the
+   file — it answers only if the code really loaded:
+
+   ```sh
+   hs -c "return dd.version"
+   ```
 
    To ask later whether this machine is still wired up, without changing anything:
 
@@ -118,7 +138,7 @@ The yellow and green dots work out of the box. **Red** — "this session is aski
 something" — needs Claude Code to tell us, because a session blocked on a question puts
 exactly the same thing in its terminal title as one that has finished.
 
-One command, from the repo:
+**Nothing here is manual.** One command, from the repo, and it does the whole job:
 
 ```sh
 ./install.sh --hooks
@@ -141,6 +161,9 @@ repo, or a synced folder — it says so and names the file it is really editing.
 hand, and it is the one that makes a session visible before you have typed anything:
 without it, a session in a terminal the panel cannot read directly — Ghostty, kitty,
 Cursor — appears nowhere until your first prompt.
+
+**One thing the script cannot do for you:** Claude Code reads its hook configuration when
+a session starts, so sessions already running will not have it. Start a new one.
 
 **Check it:** `ls ~/.hammerspoon/claude_state/` should show one JSON file per live session
 as soon as that session starts. If nothing appears, open `/hooks` in Claude Code once

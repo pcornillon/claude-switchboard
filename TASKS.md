@@ -644,6 +644,15 @@ fully wired.
 lines above the block. An empty or whitespace-only file is a blank sheet, not somebody's
 configuration, and is now written rather than appended to.
 
+**`--upgrade`, 2026-08-18:** the by-hand upgrade Peter had just been walked through
+(back up, empty the file, re-run) is now one flag. It removes only the old install —
+loader lines, and comment lines sitting against them, found by growing the drop set
+outward until it stops — collapses the blank run left behind, and writes the block in
+their place. Everything else in `init.lua` stays. Exercised on a copy of Peter's own
+twelve-line file (10 lines removed, block alone remains) and on the same file with an
+unrelated hotkey binding appended (hotkey kept, block below it). Without the flag it
+still refuses.
+
 **One bug found and fixed in the writing:** `--check` reported "no claude-switchboard
 block" on a file that had one. `grep -F "-- >>> …"` reads a pattern beginning with `--` as
 options; it needs `grep -F --`.
