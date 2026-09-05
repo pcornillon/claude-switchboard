@@ -380,3 +380,16 @@ invented index is worse than a short one.
     behind the answer**, which was the real blocker
 - **P8** `2306_cornillon-laptop` · 2026-08-19 00:30 EDT · push it
   → `121194c` pushed to `origin/main`
+
+## Cutting satdat1 over to the switchboard
+
+- **P1** `1156_satdat1` · 2026-09-05 11:56 EDT · clone the repo onto `satdat1`
+  → cloned to `~/Git_Repos/claude-switchboard` at `95f8473`
+- ★ **P2** `1156_satdat1` · 2026-09-05 11:58 EDT · retire the v52 install and start v65
+  → one edit did it: `~/.hammerspoon/init.lua`'s `package.path`, repointed from
+    `Desktop_Dashboard` to `claude-switchboard`. **The Claude hooks needed nothing** —
+    they call `claude-dashboard-state.sh` out of `claude-config/hooks/`, and that copy
+    differs from this repo's only in two comment lines
+- **P3** `1156_satdat1` · 2026-09-05 12:00 EDT · delete the old clone; log the switch
+  → `~/Git_Repos/Desktop_Dashboard` removed after confirming `main` == `origin/main`
+    (`24df5f9`) and a clean tree; this session log and these lines written
