@@ -1,8 +1,8 @@
 # STATUS.md — `claude-switchboard`
 
 Living snapshot of where this project stands. Rewritten, not appended.
-Last updated: **2026-09-06 10:23 EDT** (`satdat1`) — D95, the red dot clears when a
-permission is granted; D94, the panel finds sessions again on a Mac without iTerm. Before that, 2026-08-18 17:40 EDT (`cornillon-laptop`) —
+Last updated: **2026-09-06 13:03 EDT** (`satdat1`) — D96, a killed session stops holding
+its repo red all day; D95, the red dot clears when a permission is granted; D94, the panel finds sessions again on a Mac without iTerm. Before that, 2026-08-18 17:40 EDT (`cornillon-laptop`) —
 `install.sh`, D93. Before that, 2026-08-12 22:30 EDT — `v65`, the yellow dot restored.
 
 ---
@@ -121,6 +121,22 @@ Control (D86), and the app it belongs to is found by exact name, because
 Remote work: legend words are buttons (D68–D71), the hook raises the alert (D72–D73).
 
 ## Active thread — resume here
+
+**2026-09-06 — the red-dot residual is closed (Task #23, D96), and D95 is confirmed live.**
+
+- **`PostToolUse` needs no restart.** It was said here that hook configuration is captured
+  at session start and D95 could not reach an open session. **Measured otherwise**: a
+  session's state file `at` advanced across two tool calls with no prompt between them.
+  Claude Code picks the registration up on its own.
+- **`waiting` now has its own three-hour bound** and expires to `done` rather than being
+  dropped, so a session killed or abandoned while blocked no longer holds its repo red for
+  the full twelve. Verified with synthetic files: 1 h old → `waiting`, 4 h old → `done`.
+- **It is a judgement, not a detection, and D96 says why.** Since D95 refreshes the file on
+  every tool call, age cannot separate a dead session from one genuinely sitting at a
+  question. A `ps` sweep per file on a 3-second poll is the cost D65 exists to avoid.
+- **The real stuck file cleared itself while this was being written** — Peter used that
+  session and it went to `done`. That is the mechanism working: nothing clears a state file
+  except a later event in the same session.
 
 **2026-09-06 — the red dot never cleared when a permission was granted (Task #22, D95).**
 

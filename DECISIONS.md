@@ -1619,3 +1619,28 @@ change tense to stand alone.
   tool call, and does not eliminate it. The hook also now runs on every tool call —
   cheap (a few ms, always exits 0), but it is a real increase in hook traffic and it
   ships to anyone using the public starter.
+
+### D96. `waiting` gets its own, shorter age-out, and expires to `done` rather than vanishing
+- **Decision:** `M.claudeWaitingMaxAgeHours = 3` bounds `waiting` separately from
+  `M.claudeHookMaxAgeHours = 12`. A `waiting` record past its bound is reported as
+  `done` — not dropped — by both `readHookStates` and `readHookSessions`, via a shared
+  `ageState()`.
+- **Why:** nothing clears a state file except a later event in the **same session**, so a
+  session killed or abandoned while blocked on you — no `Stop`, no `SessionEnd` — held its
+  repo red for the full twelve hours. Measured 2026-09-06: `MODIS_L2` sat at `waiting` for
+  2 h 25 min after a permission prompt, in a session that had gone idle, and cleared only
+  when Peter used that session again.
+  **This is a judgement, not a detection, and it cannot be otherwise.** Age cannot tell
+  "dead and blocked" from "alive and blocked": since D95 the file is refreshed on every
+  tool call, and a session sitting at a question makes no tool calls either way. There is
+  no cheap signal that a session is gone — a `ps` sweep per state file on a 3-second poll
+  is exactly the cost D65 exists to avoid.
+  **Expiring to `done` rather than dropping the record** is the other half. Dropping it
+  would remove the session's line from the panel altogether; the session is still there
+  and still worth listing, it has just stopped being a reason to look.
+- **Where:** `desktop_dashboard.lua` — `M.claudeWaitingMaxAgeHours`, `ageState()`, and its
+  two call sites in `readHookStates` and `readHookSessions`.
+- **Live tension:** three hours is a guess. A question genuinely left open over a long
+  lunch goes dark, and the only cost of that is a dot; the red returns the moment the
+  session does anything. Erring the other way — a repo held red overnight by a session
+  that no longer exists — is what this replaces.

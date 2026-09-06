@@ -159,6 +159,20 @@ M.itermRecheckSeconds = 60
 M.taskTimeout      = 20
 M.claudeStateDir   = os.getenv("HOME") .. "/.hammerspoon/claude_state"
 M.claudeHookMaxAgeHours = 12     -- ignore state files older than this
+-- A SEPARATE, SHORTER BOUND FOR `waiting` (D96).
+--
+-- Nothing clears a state file except a later event in the same SESSION, so a
+-- session killed while blocked on you — no SessionEnd, no Stop — holds its repo
+-- red for the whole 12 hours above. Measured 2026-09-06: MODIS_L2 sat at
+-- `waiting` for 2h25m after a permission prompt, in a session that had gone idle.
+--
+-- Age cannot distinguish "dead and blocked" from "alive and blocked": since D95
+-- refreshes the file on every tool call, a session sitting at a question does not
+-- touch it either way. So this is a judgement, not a detection, and it is
+-- deliberately generous — the cost of expiring it too early is only that the dot
+-- goes dark; the session is still listed, and the red returns the moment the
+-- session does anything.
+M.claudeWaitingMaxAgeHours = 3
 
 -- WHICH GLYPH MEANS "computing" (D91). Claude Code leads a title's task text
 -- with a marker: an animated spinner while it computes, ✳ when it is not (D17 —
@@ -1102,6 +1116,17 @@ local function acknowledgeFrontSession(frontId)
   sessionDone[frontId] = nil
 end
 
+-- `waiting` past its own bound is reported as `done` rather than dropped (D96):
+-- the session is still there and still worth a line, it has just stopped being a
+-- reason to look. Dropping the record instead would make the session vanish from
+-- the panel, which is worse than a dot going dark.
+local function ageState(state, at, now)
+  if state ~= "waiting" then return state end
+  local bound = (M.claudeWaitingMaxAgeHours or 3) * 3600
+  if at and (now - at) > bound then return "done" end
+  return state
+end
+
 -- One small JSON file per live session, written by the Claude Code hooks. Local
 -- file reads on a handful of tiny files — cheap enough for the 3s cycle.
 local function readHookStates()
@@ -1119,8 +1144,9 @@ local function readHookStates()
           -- so a stale "waiting" cannot pin a Desktop red forever.
           if not t.at or (now - t.at) <= maxAge then
             local key = tostring(t.repo):lower()
+            local st  = ageState(t.state, tonumber(t.at), now)
             -- Several sessions in one repo: the one wanting you wins.
-            if t.state == "waiting" or out[key] == nil then out[key] = t.state end
+            if st == "waiting" or out[key] == nil then out[key] = st end
           end
         end
       end
@@ -1154,7 +1180,7 @@ local function readHookSessions()
             sid     = tostring(t.sid or name:gsub("%.json$", "")),
             project = t.repo,
             cwd     = t.cwd,
-            state   = t.state,
+            state   = ageState(t.state, tonumber(t.at), now),
             term    = t.term,
             summary = tostring(t.message or ""),
             at      = tonumber(t.at) or 0,

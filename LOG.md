@@ -405,3 +405,8 @@ invented index is worse than a short one.
     pairs in the trace, the longest 15 minutes. `working` now also fires on `PostToolUse`;
     the trace records transitions only. Found on the way: both `json_get` reads leaked to
     stderr when the state file was missing
+- ★ **P3** `1147_satdat1` · 2026-09-06 12:47 EDT · fix the 12-hour red-dot residual
+  → Task #23, D96 — `waiting` gets its own 3-hour bound and expires to `done` rather than
+    being dropped, so a killed session stops holding its repo red all day. It is a
+    judgement, not a detection: since D95 refreshes the file on every tool call, age
+    cannot tell a dead session from one genuinely blocked on you

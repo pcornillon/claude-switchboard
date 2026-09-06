@@ -771,3 +771,21 @@ line and no stderr; a following `waiting` adds exactly one more; `gone` removes 
 **Not verified:** the hook is not live in the session that made this change. Claude Code
 captures hook configuration at session start, so **`PostToolUse` fires only in sessions
 started after this**. The fix is unproven against a real permission prompt.
+
+## Task #23 — A session killed at `waiting` held its repo red for 12 hours (D96)
+
+Status: done (2026-09-06)
+
+The residual left by Task #22. `waiting` now has its own three-hour bound and expires to
+`done` rather than being dropped.
+
+**Verified with synthetic state files**, since the real one cleared itself while this was
+being written — Peter used that session and it went to `done`, which is the mechanism
+working exactly as described:
+
+| file | age | reported |
+|---|---|---|
+| `zzfresh` | 1 h | `waiting` |
+| `zzstale` | 4 h | `done` |
+
+Bound read back from the live module as 3 h. Both test files removed afterwards.
