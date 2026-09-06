@@ -738,3 +738,36 @@ included only when the bundle exists. One task and one script still, so D65 hold
 **Not done:** unverified on `cornillon-laptop`, which has iTerm and therefore never saw
 the bug. The with-iTerm assembly is byte-identical to the previous single literal, so the
 risk is low, but it has not been run there.
+
+## Task #22 — The red dot never clears when a permission is granted (D95)
+
+Status: done (2026-09-06)
+
+**Symptom (Peter, 2026-09-06):** "when a claude session stops with a red dot — input
+requested — then the question or permission has been addressed, the dot remains red."
+
+**Cause.** `working` was written only by `UserPromptSubmit`, which fires when a prompt is
+**typed**. Approving a permission dialog submits no prompt, so no hook fired and the
+state file stayed at `waiting` until `Stop`.
+
+**Evidence.** Parsing the 300-line trace per session found **13** `waiting → done`
+transitions with no `working` between, the longest 15 minutes. Every correctly-cleared
+case was answered by typing.
+
+**Fix (D95).** Register `claude-dashboard-state.sh working` on `PostToolUse`,
+`matcher: "*"` — the first event after an approval. Trace only transitions, or
+`working → working` from every tool call would flush the 300-line cap in minutes.
+
+**A second, pre-existing defect found on the way.** Both `json_get state < file
+2>/dev/null` reads had the redirections in the wrong order: bash applies them left to
+right, so a missing state file printed `No such file or directory` **to stderr from
+inside a hook**. It fired on a session's first `waiting`. `2>/dev/null` now precedes the
+input redirect in both places. Confirmed under `bash` specifically — `zsh` leaks either
+way, and the hook runs under bash.
+
+**Verified.** Four consecutive `working` calls on a fresh session produce **one** trace
+line and no stderr; a following `waiting` adds exactly one more; `gone` removes the file.
+
+**Not verified:** the hook is not live in the session that made this change. Claude Code
+captures hook configuration at session start, so **`PostToolUse` fires only in sessions
+started after this**. The fix is unproven against a real permission prompt.

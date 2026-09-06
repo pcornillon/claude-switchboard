@@ -1595,3 +1595,27 @@ change tense to stand alone.
   recognise it by is `sessions` empty while `claudeHooks` is populated**; the two are
   assigned four lines apart in one callback, so when they disagree only the AppleScript
   can be at fault. That sentence is now a comment above the blocks.
+
+### D95. Clear `waiting` from `PostToolUse`, because granting a permission fires nothing else
+- **Decision:** `claude-dashboard-state.sh working` is registered on **`PostToolUse`**
+  with `matcher: "*"`, in addition to `UserPromptSubmit`. The trace now records **only
+  transitions**, since `working` would otherwise fire on every tool call and bury the
+  state machine under its own noise.
+- **Why:** the red dot stayed red after a question or permission had been dealt with.
+  Only `UserPromptSubmit` wrote `working`, and that fires when you **type** something —
+  approving a permission dialog submits no prompt, so nothing fired and the session sat
+  at `waiting` until `Stop` wrote `done` at the end of the turn.
+  **Measured, not inferred.** The 300-line trace held **thirteen** `waiting → done` pairs
+  with no `working` between them, across nine sessions: `cdb5190a` 17:17:03 → 17:27:20
+  (10 min), `4a7d784b` 20:54:42 → 21:09:56 (15 min), `d26705b4` 00:03:03 → 00:15:11
+  (12 min). Every pair that *was* cleared properly is one where the answer was a typed
+  prompt. `PostToolUse` is the first event after an approval — the tool only runs once
+  permission is granted — so it is the signal, and there is no other.
+- **Where:** `claude-config/global/settings.json`, the second `PostToolUse` entry
+  (`matcher: "*"`); `claude-dashboard-state.sh`, the trace block.
+- **Live tension:** the dot stays red for the **duration of the approved tool call**,
+  because `PostToolUse` fires when it finishes. `PreToolUse` cannot help: it runs
+  *before* the permission prompt. This narrows a 15-minute stall to the length of one
+  tool call, and does not eliminate it. The hook also now runs on every tool call —
+  cheap (a few ms, always exits 0), but it is a real increase in hook traffic and it
+  ships to anyone using the public starter.

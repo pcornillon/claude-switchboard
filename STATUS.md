@@ -1,8 +1,8 @@
 # STATUS.md — `claude-switchboard`
 
 Living snapshot of where this project stands. Rewritten, not appended.
-Last updated: **2026-09-06 10:15 EDT** (`satdat1`) — D94, the panel finds sessions again
-on a Mac without iTerm. Before that, 2026-08-18 17:40 EDT (`cornillon-laptop`) —
+Last updated: **2026-09-06 10:23 EDT** (`satdat1`) — D95, the red dot clears when a
+permission is granted; D94, the panel finds sessions again on a Mac without iTerm. Before that, 2026-08-18 17:40 EDT (`cornillon-laptop`) —
 `install.sh`, D93. Before that, 2026-08-12 22:30 EDT — `v65`, the yellow dot restored.
 
 ---
@@ -121,6 +121,28 @@ Control (D86), and the app it belongs to is found by exact name, because
 Remote work: legend words are buttons (D68–D71), the hook raises the alert (D72–D73).
 
 ## Active thread — resume here
+
+**2026-09-06 — the red dot never cleared when a permission was granted (Task #22, D95).**
+
+`working` was written only by `UserPromptSubmit`, which fires when you **type** something.
+Approving a permission dialog submits no prompt, so nothing fired and the session sat at
+`waiting` until `Stop` wrote `done` at the end of the turn.
+
+- **Measured in the trace, not inferred:** 13 `waiting → done` pairs with no `working`
+  between them, across nine sessions; the longest were 10, 12 and 15 minutes. Every pair
+  that cleared correctly was one where the answer was typed.
+- **Fix:** `working` is now also registered on `PostToolUse` with `matcher: "*"`
+  (`claude-config`'s Task #28) — the first event after an approval, since the tool only
+  runs once permission is given. The trace records **transitions only**, or every tool
+  call would flush its 300-line cap in minutes.
+- **A pre-existing defect found on the way:** both `json_get state < file 2>/dev/null`
+  reads had the redirections in the wrong order, so a missing state file printed to
+  **stderr from inside a hook**. Fixed in both places.
+- **UNPROVEN AGAINST A REAL PERMISSION PROMPT.** Claude Code captures hook configuration
+  at session start, so `PostToolUse` fires only in sessions started after this change. The
+  next session that hits a permission dialog is the test.
+- **`PreToolUse` cannot help** — it runs *before* the prompt. So the dot still stays red
+  for the length of the approved tool call. That is a narrowing, not an elimination.
 
 **2026-09-06 — the panel had been blind to every Claude session on `satdat1`, and the
 cause was iTerm not being installed (Task #21, D94).**

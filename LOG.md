@@ -398,3 +398,10 @@ invented index is worse than a short one.
   → root cause: iTerm absent, so the whole title AppleScript failed to compile and the
     Terminal half never ran. Task #21, D94 — the script is assembled in Lua and the iTerm
     block is included only when the bundle exists. Live `sessions` 0 → 3 after reload
+- ★ **P2** `1147_satdat1` · 2026-09-06 10:20 EDT · the red dot stays red after the question
+  is answered
+  → Task #22, D95 — only `UserPromptSubmit` wrote `working`, and approving a permission
+    submits no prompt, so the state sat at `waiting` until `Stop`. 13 `waiting → done`
+    pairs in the trace, the longest 15 minutes. `working` now also fires on `PostToolUse`;
+    the trace records transitions only. Found on the way: both `json_get` reads leaked to
+    stderr when the state file was missing
