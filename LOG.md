@@ -393,3 +393,8 @@ invented index is worse than a short one.
 - **P3** `1156_satdat1` · 2026-09-05 12:00 EDT · delete the old clone; log the switch
   → `~/Git_Repos/Desktop_Dashboard` removed after confirming `main` == `origin/main`
     (`24df5f9`) and a clean tree; this session log and these lines written
+- ★ **P1** `1147_satdat1` · 2026-09-06 09:55 EDT · the panel reports no Claude sessions on
+  `satdat1`
+  → root cause: iTerm absent, so the whole title AppleScript failed to compile and the
+    Terminal half never ran. Task #21, D94 — the script is assembled in Lua and the iTerm
+    block is included only when the bundle exists. Live `sessions` 0 → 3 after reload

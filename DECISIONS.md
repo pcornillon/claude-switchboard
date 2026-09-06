@@ -1566,3 +1566,32 @@ change tense to stand alone.
 - **Live tension:** two ways to do the same thing now exist, and the appendix keeps the
   hand version alive. That is deliberate — the script cannot help someone whose setup it
   does not anticipate — but it is a second thing to keep current.
+
+### D94. Assemble the title script in Lua; compile the iTerm half only when iTerm exists
+- **Decision:** `CLAUDE_TITLE_SCRIPT` is no longer one literal. It is four literals —
+  head, Terminal block, iTerm block, tail — concatenated by `claudeTitleScript()`, which
+  includes the iTerm block only when `hs.application.pathForBundleID`
+  ("com.googlecode.iterm2") returns a real path. Re-checked every
+  `M.itermRecheckSeconds` (60) so installing iTerm does not need a Hammerspoon reload.
+- **Why:** `if application "iTerm" is running then` looks like a guard and is not one.
+  AppleScript resolves terminology and **compiles the whole script before running any of
+  it**, so on a Mac without iTerm the `tell application "iTerm"` block cannot compile —
+  `id of current window` raises `-2741` — and nothing runs at all. The Terminal half is
+  collateral damage: `osascript` writes nothing, `parseClaudeTitles` gets an empty
+  string, and the panel reads **"(no claude sessions found)"** while the red dot keeps
+  working perfectly, because the hooks read files rather than asking AppleScript
+  anything. Measured on `satdat1` 2026-09-06: iTerm absent, combined script exits 1 with
+  empty stdout; the same script minus that block returns all six Terminal windows. After
+  the fix, `sessions` went from 0 to 3.
+  **This rules out the obvious alternative** — a second `runTask` for iTerm — which D65
+  rejected for good reasons that still stand. Assembling in Lua keeps one task, one
+  in-flight guard and one timeout, and moves the absent-application case from a compile
+  error to an ordinary empty string.
+- **Where:** `desktop_dashboard.lua` — `TITLE_SCRIPT_HEAD`, `TITLE_TERMINAL_BLOCK`,
+  `TITLE_ITERM_BLOCK`, `TITLE_SCRIPT_TAIL`, `itermInstalled()`, `claudeTitleScript()`,
+  and the one call site in `refreshClaudeStates`. Config: `M.itermRecheckSeconds`.
+- **Live tension:** the failure is silent and machine-shaped — it appears only where
+  iTerm is missing, so it cannot be seen on a machine that has it. **The signature to
+  recognise it by is `sessions` empty while `claudeHooks` is populated**; the two are
+  assigned four lines apart in one callback, so when they disagree only the AppleScript
+  can be at fault. That sentence is now a comment above the blocks.

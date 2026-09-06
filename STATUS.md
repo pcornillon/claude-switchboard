@@ -1,8 +1,9 @@
 # STATUS.md — `claude-switchboard`
 
 Living snapshot of where this project stands. Rewritten, not appended.
-Last updated: **2026-08-18 17:40 EDT** (`cornillon-laptop`) — `install.sh`, D93.
-Before that, 2026-08-12 22:30 EDT — `v65`, the yellow dot restored.
+Last updated: **2026-09-06 10:15 EDT** (`satdat1`) — D94, the panel finds sessions again
+on a Mac without iTerm. Before that, 2026-08-18 17:40 EDT (`cornillon-laptop`) —
+`install.sh`, D93. Before that, 2026-08-12 22:30 EDT — `v65`, the yellow dot restored.
 
 ---
 
@@ -120,6 +121,31 @@ Control (D86), and the app it belongs to is found by exact name, because
 Remote work: legend words are buttons (D68–D71), the hook raises the alert (D72–D73).
 
 ## Active thread — resume here
+
+**2026-09-06 — the panel had been blind to every Claude session on `satdat1`, and the
+cause was iTerm not being installed (Task #21, D94).**
+
+The section under **Claude sessions:** read `(no claude sessions found)` while the Desktop
+labels and the red dot both worked. AppleScript compiles a whole script before running any
+of it, so the `tell application "iTerm"` block could not compile on a machine without
+iTerm (`-2741` at `id of current window`) and the Terminal half never ran.
+`if application "iTerm" is running then` is a runtime test in front of a compile-time
+failure and cannot help.
+
+- **Fixed and verified live**: the script is assembled in Lua from four literals and the
+  iTerm block is included only when the bundle exists. After `hs.reload()` the module's
+  `sessions` table went **0 → 3**. D65's one-task rule is untouched.
+- **The signature, for next time:** `sessions` empty while `claudeHooks` is populated. They
+  are assigned four lines apart in one callback, so when they disagree only the AppleScript
+  can be at fault. It is now a comment above the blocks.
+- **Not verified on `cornillon-laptop`**, which has iTerm and so never saw this. The
+  with-iTerm assembly is byte-identical to the old single literal, so the risk is low.
+- **`claude-dashboard-state.sh` is now formally owned here** — `claude-config` D46 and its
+  Task #27. That repo keeps a copy under `hooks/` because that is the path
+  `settings.json` names and the path the public starter repoints; its `install.sh` now
+  compares the two on every run and warns on drift. **Edit it here, not there.** The
+  resync also cleared the two comment lines still naming `Desktop_Dashboard`, which is the
+  last item Task #18 had left open.
 
 **`INSTALL.md` is rewritten and committed (Task #20, 2026-08-19), and the complaint that
 had been open since 2026-08-18 is closed.** The reader was named this time — physical

@@ -708,3 +708,33 @@ across several. It makes the two-Desktop observation actionable.
 
 **No `install.sh` flag or behaviour changed**, so `claude-config-public`'s generated
 "Optional: the session panel" section does not need rebuilding.
+
+## Task #21 — The panel finds no Claude sessions on a Mac without iTerm (D94)
+
+Status: done (2026-09-06)
+
+**Symptom.** `satdat1`'s panel labelled its Desktops correctly but the section under
+**Claude sessions:** read `(no claude sessions found)`, with every Claude Code hook
+firing normally and the red dot working.
+
+**Cause.** iTerm is not installed on that machine. AppleScript compiles a whole script
+before running any of it, so the `tell application "iTerm"` block could not compile
+(`-2741` at `id of current window`) and the Terminal half never ran. The
+`if application "iTerm" is running then` line cannot prevent this — it is a runtime
+test in front of a compile-time failure.
+
+**Fix.** D94: the script is assembled in Lua from four literals and the iTerm block is
+included only when the bundle exists. One task and one script still, so D65 holds.
+
+**Verified on the live install**, not in a sandbox:
+
+- Extracted script, run standalone: combined = exit 1, empty stdout; Terminal-only =
+  exit 0, six windows with their spinner glyphs.
+- `hs.application.pathForBundleID("com.googlecode.iterm2")` returns `""` here — hence the
+  empty-string test alongside `nil`.
+- After `hs.reload()`, the module's live `sessions` table went **0 → 3**:
+  `T1 MODIS_L2 idle`, `T2 Git_Repos idle`, `T3 claude-config working`.
+
+**Not done:** unverified on `cornillon-laptop`, which has iTerm and therefore never saw
+the bug. The with-iTerm assembly is byte-identical to the previous single literal, so the
+risk is low, but it has not been run there.

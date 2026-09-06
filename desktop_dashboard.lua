@@ -149,6 +149,9 @@ M.claudeDotChar    = "●"
 M.showDotPlaceholders  = true
 M.dotPlaceholderColor  = { white = 0.42, alpha = 1 }
 M.claudeDotSeconds = 3           -- how often titles are read (async, never blocks)
+-- How often to re-ask Launch Services whether iTerm exists (D94). Only the
+-- answer "yes" changes what is compiled, so this can be lazy.
+M.itermRecheckSeconds = 60
 -- Seconds before a background read that has not come back is killed and its
 -- in-flight guard released. Applies to the two continuous polls (claude titles,
 -- git status); ⌘⌃⌥g and its pull have their own, longer limits below. See D65:
@@ -813,8 +816,34 @@ end
 -- Both are enumerated per WINDOW, and both report windows on Spaces you are not
 -- looking at — measured for iTerm on 2026-08-06, the question that decided
 -- whether this was possible at all.
-local CLAUDE_TITLE_SCRIPT = [[
+-- THE ITERM HALF IS COMPILED ONLY WHEN ITERM IS INSTALLED (D94).
+--
+-- `if application "iTerm" is running then` reads like a guard and is not one.
+-- AppleScript resolves an application's terminology and COMPILES THE WHOLE
+-- script before it runs a single line, so on a Mac without iTerm the
+-- `tell application "iTerm"` block cannot compile — `id of current window`
+-- raises -2741, "Expected ... but found class name" — and NOTHING runs. The
+-- Terminal half is collateral damage: osascript writes nothing to stdout,
+-- parseClaudeTitles is handed an empty string, and the panel reads
+-- "(no claude sessions found)" while the red dot keeps working perfectly,
+-- because the hooks read files instead of asking AppleScript anything.
+--
+-- THE SIGNATURE, for the next time: `sessions` empty while `claudeHooks` is
+-- populated. The two are assigned four lines apart in the one callback, so
+-- when they disagree the AppleScript is the only thing that can be at fault.
+--
+-- Measured on satdat1, 2026-09-06: iTerm absent; the combined script exits 1
+-- with empty stdout, and the same script with this block removed returns all
+-- six Terminal windows.
+--
+-- D65 still holds — this is ONE task and one script. What changed is that the
+-- script is ASSEMBLED in Lua, where a missing application is an ordinary empty
+-- string rather than a compile error.
+local TITLE_SCRIPT_HEAD = [[
 set out to ""
+]]
+
+local TITLE_TERMINAL_BLOCK = [[
 if application "Terminal" is running then
   tell application "Terminal"
     -- Which window is frontmost, so a session you are actually looking at can
@@ -827,6 +856,9 @@ if application "Terminal" is running then
     end repeat
   end tell
 end if
+]]
+
+local TITLE_ITERM_BLOCK = [[
 if application "iTerm" is running then
   tell application "iTerm"
     try
@@ -851,8 +883,34 @@ if application "iTerm" is running then
     end repeat
   end tell
 end if
+]]
+
+local TITLE_SCRIPT_TAIL = [[
 return out
 ]]
+
+-- pathForBundleID returns "" (not nil) for an app that is not installed, so
+-- both have to be treated as absent. Re-checked on a slow cadence rather than
+-- once at load: installing iTerm should not need a Hammerspoon reload, and a
+-- Launch Services lookup once a minute costs nothing against a 3s poll.
+local ITERM_BUNDLE_ID = "com.googlecode.iterm2"
+local itermCheckedAt, itermPresent = 0, nil
+local function itermInstalled()
+  local now = hs.timer.secondsSinceEpoch()
+  if itermPresent == nil or (now - itermCheckedAt) >= (M.itermRecheckSeconds or 60) then
+    itermCheckedAt = now
+    local ok, path = pcall(hs.application.pathForBundleID, ITERM_BUNDLE_ID)
+    itermPresent = (ok and path ~= nil and path ~= "") and true or false
+  end
+  return itermPresent
+end
+
+local function claudeTitleScript()
+  if itermInstalled() then
+    return TITLE_SCRIPT_HEAD .. TITLE_TERMINAL_BLOCK .. TITLE_ITERM_BLOCK .. TITLE_SCRIPT_TAIL
+  end
+  return TITLE_SCRIPT_HEAD .. TITLE_TERMINAL_BLOCK .. TITLE_SCRIPT_TAIL
+end
 
 local function firstCodepoint(s)
   if not (utf8 and utf8.codepoint) or not s or s == "" then return nil end
@@ -1265,7 +1323,7 @@ local function refreshClaudeStates()
   -- Half the interval, so timer jitter can never make a tick skip itself.
   if now - claudeStatesAt < (M.claudeDotSeconds or 3) * 0.5 then return end
   claudeStatesAt = now
-  local t = runTask("/usr/bin/osascript", { "-e", CLAUDE_TITLE_SCRIPT }, M.taskTimeout,
+  local t = runTask("/usr/bin/osascript", { "-e", claudeTitleScript() }, M.taskTimeout,
     function(_, stdout, _, timedOut)
     claudeTask = nil
     if timedOut then noteTaskStall("claude session read", M.taskTimeout); return end
