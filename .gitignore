@@ -5,3 +5,5 @@
 # Listed here only as a guard in case someone copies it in by accident.
 desktop_dashboard_state.json
 desktop_dashboard_names.json
+# pre-renumbering copy of LOG.md (D60 in claude-config)
+*-backup.md
