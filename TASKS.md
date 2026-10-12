@@ -792,7 +792,7 @@ Bound read back from the live module as 3 h. Both test files removed afterwards.
 
 ## Task #24 — A dot colour for a session whose turn ended with background work still running (D97)
 
-Status: doing
+Status: done (2026-10-12)
 
 Peter, 2026-10-11: a turn that ends with `JOB RUNNING IN BACKGROUND` shows green, which
 reads as finished. Now blue, from the `Stop` payload's `background_tasks` (D97), `v66`.
@@ -800,5 +800,14 @@ reads as finished. Now blue, from the `Stop` payload's `background_tasks` (D97),
 **Verified:** hook test suite, five new checks, all pass with `jq` off the PATH; the
 deployed copy in `claude-config/hooks/` is byte-identical; `v66` loaded with a clean
 console; a synthetic `background` state file photographed as a blue dot on a `T1` line.
-**Not yet verified:** a real `Stop` carrying a non-empty `background_tasks` — tested at the
-end of the 2026-10-11 session by leaving a background `sleep` running.
+**Verified live, 2026-10-12**, by ending a turn with a background `sleep 90` running in
+session `bc86c646`. From `~/.hammerspoon/claude_state/trace.log`:
+
+| time EDT | event | prev |
+|---|---|---|
+| 14:56:58 | `done` (the Stop; recorded as `background`) | `working` |
+| 14:57:59 | `waiting` (the idle nudge — filtered, file unchanged) | `background` |
+| 14:58:15 | `working` (the woken turn's first tool call) | `background` |
+
+The trace printed the hook's argument, `done`, not the state it wrote; the conversion now
+runs before the trace, so it prints `background`.

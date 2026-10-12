@@ -127,7 +127,7 @@ blue dot, not green (Task #24, D97, `v66`).** The hook reads Claude Code's own
 `background_tasks` list from the `Stop` payload rather than the
 `JOB RUNNING IN BACKGROUND` line Claude writes, so it does not depend on Claude
 remembering. Blue → green when the woken turn ends. Deployed hook copy synced; photographed
-with a synthetic file. **The one open check** is a real `Stop` with work in flight — see
+with a synthetic file. Verified live with a real `Stop` on 2026-10-12 — the trace is in
 Task #24.
 
 **2026-09-06 — the red-dot residual is closed (Task #23, D96), and D95 is confirmed live.**
