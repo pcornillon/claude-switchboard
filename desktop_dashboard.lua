@@ -75,7 +75,7 @@
 ============================================================]]--
 
 local M = {}
-M.version = "v65 (the spinner is read by exclusion — Claude Code changed it and the yellow dot died, 2026-08-12)"
+M.version = "v66 (a blue dot for a session whose turn ended with background work still running, D97, 2026-10-12)"
 
 -- ============================ CONFIG ============================
 
@@ -173,6 +173,12 @@ M.claudeHookMaxAgeHours = 12     -- ignore state files older than this
 -- goes dark; the session is still listed, and the red returns the moment the
 -- session does anything.
 M.claudeWaitingMaxAgeHours = 3
+-- A LONGER BOUND FOR `background` (D97). The file is written once, at the Stop
+-- that left the work running, and nothing touches it until that work wakes the
+-- session — so a 26-hour run (MODIS_L2, 2026-09-08) would outlive the 12 hours
+-- above and lose its dot half-way. A session killed mid-run holds the blue dot
+-- this long; that is the price, and it is a dot, not a red one.
+M.claudeBackgroundMaxAgeHours = 48
 
 -- WHICH GLYPH MEANS "computing" (D91). Claude Code leads a title's task text
 -- with a marker: an animated spinner while it computes, ✳ when it is not (D17 —
@@ -246,6 +252,11 @@ M.claudeDotColors  = {
   working = { red = 1.00, green = 0.78, blue = 0.20, alpha = 1 },   -- yellow: computing
   waiting = { red = 1.00, green = 0.28, blue = 0.26, alpha = 1 },   -- red: wants you
   done    = { red = 0.30, green = 0.85, blue = 0.40, alpha = 1 },   -- green: finished, unseen
+  -- Blue: the turn ended, but work it started is still running and will wake the
+  -- session when it finishes (D97). Not green, because nothing has finished; not
+  -- yellow, because nothing is computing in front of you. Unlike green it is not
+  -- cleared by looking — it is a fact about the session, not an acknowledgement.
+  background = { red = 0.35, green = 0.55, blue = 1.00, alpha = 1 },
 }
 
 -- GIT STATUS DOT — a second dot, right after the Claude dot, on every panel line
@@ -1065,8 +1076,9 @@ end
 -- three. Order follows window id, so the lines keep their places across polls.
 --
 -- The group's dot follows sessionEntries exactly: yellow if any of its sessions
--- is computing, red if the hooks say that repo is waiting on you, green if one
--- finished and you have not looked at it.
+-- is computing, red if the hooks say that repo is waiting on you, blue if a turn
+-- there ended with background work still running (D97), green if one finished
+-- and you have not looked at it.
 local function sessionGroupsFor(sid)
   local list = sessionsBySpace[sid]
   if not (list and #list > 0) then return {} end
@@ -1088,6 +1100,7 @@ local function sessionGroupsFor(sid)
     for _, g in ipairs(order) do
       if g.working then g.state = "working"
       elseif claudeHooks[g.key] == "waiting" then g.state = "waiting"
+      elseif claudeHooks[g.key] == "background" then g.state = "background"
       elseif g.finished then g.state = "done" end
     end
   end
@@ -1127,13 +1140,19 @@ local function ageState(state, at, now)
   return state
 end
 
+-- How old a state file may be before it is ignored: `background` has its own,
+-- longer bound (D97), everything else the general one.
+local function hookFileMaxAge(state)
+  if state == "background" then return (M.claudeBackgroundMaxAgeHours or 48) * 3600 end
+  return (M.claudeHookMaxAgeHours or 12) * 3600
+end
+
 -- One small JSON file per live session, written by the Claude Code hooks. Local
 -- file reads on a handful of tiny files — cheap enough for the 3s cycle.
 local function readHookStates()
   local out = {}
   local dir = M.claudeStateDir
   if not (dir and hs.fs.attributes(dir)) then return out end
-  local maxAge = (M.claudeHookMaxAgeHours or 12) * 3600
   local now = os.time()
   pcall(function()
     for name in hs.fs.dir(dir) do
@@ -1142,11 +1161,15 @@ local function readHookStates()
         if type(t) == "table" and t.repo and t.state then
           -- A session killed without SessionEnd leaves its file behind; age it out
           -- so a stale "waiting" cannot pin a Desktop red forever.
-          if not t.at or (now - t.at) <= maxAge then
+          if not t.at or (now - t.at) <= hookFileMaxAge(t.state) then
             local key = tostring(t.repo):lower()
             local st  = ageState(t.state, tonumber(t.at), now)
-            -- Several sessions in one repo: the one wanting you wins.
-            if st == "waiting" or out[key] == nil then out[key] = st end
+            -- Several sessions in one repo: the one wanting you wins, then one
+            -- with work still running (D97), then whichever was read first.
+            if st == "waiting" or out[key] == nil
+               or (st == "background" and out[key] ~= "waiting") then
+              out[key] = st
+            end
           end
         end
       end
@@ -1164,7 +1187,6 @@ local function readHookSessions()
   if not M.showHookSessions then return out end
   local dir = M.claudeStateDir
   if not (dir and hs.fs.attributes(dir)) then return out end
-  local maxAge = (M.claudeHookMaxAgeHours or 12) * 3600
   local now = os.time()
   pcall(function()
     for name in hs.fs.dir(dir) do
@@ -1175,7 +1197,7 @@ local function readHookSessions()
         if type(t) == "table" and t.repo and t.state
            and term ~= "" and known
            and not (M.hookSessionTerminals or {})[term]
-           and (not t.at or (now - t.at) <= maxAge) then
+           and (not t.at or (now - t.at) <= hookFileMaxAge(t.state)) then
           out[#out + 1] = {
             sid     = tostring(t.sid or name:gsub("%.json$", "")),
             project = t.repo,
@@ -2128,6 +2150,7 @@ local function sessionEntries()
     if M.showClaudeDot then
       if s.state == "working" then state = "working"
       elseif claudeHooks[key] == "waiting" then state = "waiting"
+      elseif claudeHooks[key] == "background" then state = "background"
       elseif sessionDone[s.wid] then state = "done" end
     end
     local dots = withPlaceholders({ claudeDotSpec(state), gitDotSpec(gitStateFor(s.project)) })

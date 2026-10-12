@@ -135,7 +135,8 @@ menu bar; it should carry a line reading `desktop_dashboard vNN … loaded`.
 ### Step 6 — Turn on the red dot
 
 The panel gives each session a colored dot: **yellow** while it is working, **green** when it has
-finished, and **red** when it has stopped to ask you something. Red is the one you actually
+finished, **blue** when it has finished its turn but left a background job running, and
+**red** when it has stopped to ask you something. Red is the one you actually
 want, and it is the one that needs a moment of setup — from the outside, a session waiting
 on a question looks exactly like one that is done.
 

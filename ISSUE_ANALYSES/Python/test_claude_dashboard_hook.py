@@ -113,6 +113,24 @@ def main():
         check("SessionEnd removes the file",
               not os.path.exists(os.path.join(sb.state, "seq-1.json")))
 
+        print("\n== a turn that ends with work in flight (D97) ==")
+        bg = {"session_id": "bg-1", "cwd": "/tmp/r", "message": ""}
+        task = {"id": "b1", "type": "shell", "status": "running",
+                "description": 'quoted \"background_tasks\":[] in free text'}
+        sb.run("working", bg)
+        sb.run("done", dict(bg, background_tasks=[task]))
+        check("Stop with a task in flight -> background", sb.read("bg-1")["state"] == "background",
+              "state is " + sb.read("bg-1")["state"])
+        sb.run("waiting", dict(bg, message="idle nudge"))
+        check("a nudge after background is ignored", sb.read("bg-1")["state"] == "background",
+              "state is " + sb.read("bg-1")["state"])
+        sb.run("done", dict(bg, background_tasks=[]))
+        check("the woken turn's Stop, array empty -> done", sb.read("bg-1")["state"] == "done")
+        sb.run("done", dict(bg, last_assistant_message='"background_tasks":[1]', background_tasks=[]))
+        check("the key quoted inside a string does not count", sb.read("bg-1")["state"] == "done")
+        sb.run("done", bg)
+        check("no background_tasks field (older Claude Code) -> done", sb.read("bg-1")["state"] == "done")
+
         print("\n== degraded input: never fail the session ==")
         check("missing session_id exits 0", sb.run("working", {"cwd": "/tmp/nosid"}).returncode == 0)
         check("falls back to nosession-<pid>",

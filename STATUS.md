@@ -122,6 +122,14 @@ Remote work: legend words are buttons (D68–D71), the hook raises the alert (D7
 
 ## Active thread — resume here
 
+**2026-10-12 — a session whose turn ended with background work still running now shows a
+blue dot, not green (Task #24, D97, `v66`).** The hook reads Claude Code's own
+`background_tasks` list from the `Stop` payload rather than the
+`JOB RUNNING IN BACKGROUND` line Claude writes, so it does not depend on Claude
+remembering. Blue → green when the woken turn ends. Deployed hook copy synced; photographed
+with a synthetic file. **The one open check** is a real `Stop` with work in flight — see
+Task #24.
+
 **2026-09-06 — the red-dot residual is closed (Task #23, D96), and D95 is confirmed live.**
 
 - **`PostToolUse` needs no restart.** It was said here that hook configuration is captured

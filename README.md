@@ -111,7 +111,8 @@ changes.
 **For Claude sessions**
 
 - **A colored dot per session** — yellow while it computes, red when it's blocked asking
-  you something, green when it finished while you were elsewhere. See
+  you something, blue when its turn ended with a background job still running, green when
+  it finished while you were elsewhere. See
   [the dot](#the-claude-session-dot).
 - **Works for Desktops you aren't looking at.** macOS won't let an app read the windows of
   a Space you're not viewing, but Terminal will report every window's title regardless — so
@@ -289,10 +290,11 @@ colored dot between the Desktop number and the arrow:
 |-----|---------|------------------------|
 | 🟡 yellow | that session is working | no |
 | 🔴 red | it has stopped to ask you something | **yes** |
+| 🔵 blue | its turn ended, but work it started is still running in the background | **yes** |
 | 🟢 green | it finished and you haven't looked yet | no |
 | *(none)* | nothing to tell you | — |
 
-Order of priority is **yellow → red → green**. Working always wins, so the instant you
+Order of priority is **yellow → red → blue → green**. Working always wins, so the instant you
 answer a question the dot goes straight back to yellow.
 
 **Green means "finished, unseen", not merely "idle".** It appears on the working →
@@ -300,6 +302,14 @@ not-working edge, so it marks a prompt that *completed while you were elsewhere*
 when you visit that Desktop — clicking its line counts, since that switches you there — and
 re-prompting the session clears it too. A session already sitting idle when the dashboard
 starts is never flagged, so you don't get a wall of green at login.
+
+**Blue means "a result is still coming".** Claude can end its turn with a job still
+running — a long script started in the background, a subagent — and it will be woken to
+report when that job finishes. Without blue that looks exactly like green. The hook reads it
+from Claude Code itself (the list of in-flight work it hands to the `Stop` hook), so it does
+not depend on anything Claude writes. Blue is **not** cleared by looking: it stays until the
+job finishes and the woken turn ends, and then the dot goes green. It needs a recent Claude
+Code; an older one simply shows green, as before.
 
 **Red needs the extra setup in INSTALL.md.** Without it everything else still works — you
 simply never see red, and a session waiting on you looks the same as one that has finished.

@@ -1644,3 +1644,36 @@ change tense to stand alone.
   lunch goes dark, and the only cost of that is a dot; the red returns the moment the
   session does anything. Erring the other way — a repo held red overnight by a session
   that no longer exists — is what this replaces.
+
+### D97. A turn that ends with background work still running gets a blue dot, read from the `Stop` payload
+- **Decision:** the hook records `background` instead of `done` when the `Stop` payload's
+  `background_tasks` array is non-empty. The panel draws it blue
+  (`M.claudeDotColors.background`), with priority **yellow → red → blue → green**. It is not
+  cleared by looking at the session, the idle nudge after it is filtered like the one after
+  `done`, and its state file has its own 48-hour bound (`M.claudeBackgroundMaxAgeHours`)
+  instead of the general twelve.
+- **Why:** a turn that ends with a `run_in_background` job, a subagent or a monitor still in
+  flight went green — "finished, unseen" — when a result was still coming. Peter asked for a
+  colour of its own on 2026-10-11.
+  **Detected from Claude Code, not from Claude's text.** Peter's working rules have Claude
+  end such a turn with `JOB RUNNING IN BACKGROUND — WILL REPORT WHEN IT FINISHES`, and
+  matching that string was the obvious route. It was rejected: it holds only while Claude
+  remembers to write it, and pins the dot to a phrase — the failure D91 recorded for the
+  spinner glyph. Claude Code 2.1.296's `Stop` payload carries `background_tasks`,
+  documented in its own schema as "Lets hooks distinguish 'session is done' from 'session
+  is paused waiting for background work to wake it'" (read from the binary's schema
+  strings, 2026-10-11). The woken turn ends in a `Stop` of its own with the array empty,
+  which writes `done`, so the dot goes blue → green with nothing else to maintain.
+  **48 hours** because the file is written once and untouched until the work wakes the
+  session, and a run in `MODIS_L2` lasted 26 hours (2026-09-08) — twelve would drop the dot
+  half-way through.
+  **`session_crons` is deliberately not counted.** A `ScheduleWakeup` or `/loop` is a
+  session that will come back later, not work that is running now.
+- **Where:** `claude-dashboard-state.sh` (the `bg_re` block, and the nudge filter);
+  `desktop_dashboard.lua` — `M.claudeDotColors`, `M.claudeBackgroundMaxAgeHours`,
+  `hookFileMaxAge()`, the merge in `readHookStates`, `sessionGroupsFor`, `sessionEntries`;
+  the D97 block of `ISSUE_ANALYSES/Python/test_claude_dashboard_hook.py`.
+- **Live tension:** a session killed mid-run — no woken turn, no `SessionEnd` — stays blue
+  for up to 48 hours. And like red, blue is joined to a Terminal window by **repo**, so a
+  second session in the same repo shows blue too. An older Claude Code sends no
+  `background_tasks` and gets green, exactly as before.
