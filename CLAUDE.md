@@ -4,7 +4,7 @@
 git state.
 **Produces:** `desktop_dashboard.lua` — a single-file tool loaded from
 `~/.hammerspoon/init.lua` — plus `claude-dashboard-state.sh`, its Claude Code hook.
-**State:** v67, working and in daily use; see `STATUS.md`. Renamed from `Desktop_Dashboard`
+**State:** v68, working and in daily use; see `STATUS.md`. Renamed from `Desktop_Dashboard`
 on 2026-08-12 (**D92**) — the module file `desktop_dashboard.lua` deliberately kept its name.
 
 Context for AI coding sessions on this repo. Read this before changing

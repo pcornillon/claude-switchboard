@@ -820,3 +820,10 @@ Peter, 2026-10-27: blue and green are hard to tell apart. Now pink, `v67`.
 
 **Verified:** `v67` loaded in Hammerspoon; panel photographed with the pink dot on
 Desktop 12 beside a red dot on Desktop 4 and green dots elsewhere.
+
+## Task #26 — A tap on a session line sometimes does not reach its project (D99)
+
+Status: blocked (on Peter tapping session lines and on what the click log records)
+
+Peter, 2026-10-27. Two inferred causes fixed and every click traced, `v68`; neither cause
+confirmed. Done when the log shows taps landing `OK`, or names the one that did not.

@@ -75,7 +75,7 @@
 ============================================================]]--
 
 local M = {}
-M.version = "v67 (the background-work dot is pink, not blue, D98, 2026-10-27)"
+M.version = "v68 (a session-line click switches Desktop first, a missed tap release is recovered, clicks traced, D99, 2026-10-27)"
 
 -- ============================ CONFIG ============================
 
@@ -2997,6 +2997,36 @@ local function raiseWindowOnSpace(wid, space, appName)
   if space then gotoSpaceVerified(space) end
 end
 
+-- CLICK TRACE (D99). One line per click to M.clickLogFile: what was clicked,
+-- which release decided it was a click, the Desktop it should reach, and the
+-- Desktop actually active 1.5 s later. "Sometimes goes to the wrong project" went
+-- unreproduced, like the gotoSpace failure before D88; this makes the next one
+-- leave a record instead of a memory.
+M.clickLogFile = M.clickLogFile or (os.getenv("HOME") .. "/.hammerspoon/desktop_dashboard_clicks.log")
+local clickTraceTimer
+local function traceClick(elementId, via, target)
+  if not M.clickLogFile then return end
+  local t0 = os.date("%Y-%m-%d %H:%M:%S %Z")
+  local function write(landed)
+    local f = io.open(M.clickLogFile, "a")
+    if not f then return end
+    f:write(string.format("%s  %-14s via=%-9s target=%s landed=%s %s\n", t0,
+      tostring(elementId), via, tostring(target), tostring(landed),
+      (target == nil) and "" or ((target == landed) and "OK" or "WRONG")))
+    f:close()
+  end
+  if not target then write(nil); return end
+  clickTraceTimer = hs.timer.doAfter(1.5, function()
+    local landed
+    for _, scr in ipairs(hs.screen.allScreens()) do
+      for _, sp in ipairs(safeSpacesForScreen(scr)) do
+        if sp == target then landed = safeActiveSpace(scr) end
+      end
+    end
+    write(landed)
+  end)
+end
+
 local function focusTerminalWindow(wid)
   if not wid then return end
   sessionDone[wid] = nil                 -- looking at it is acknowledging it
@@ -3007,7 +3037,8 @@ local function focusTerminalWindow(wid)
 end
 
 -- A click that never became a drag acts on whatever it landed on.
-local function activateElement(elementId)
+local termTimer
+local function activateElement(elementId, via)
   if type(elementId) ~= "string" then return end
   if elementId == "resize" then return end   -- a click on the grip resizes nothing
   if elementId == "rescan" then pcall(M.scanAll); return end
@@ -3064,13 +3095,26 @@ local function activateElement(elementId)
       local key = tostring(e.sid) .. "\0" .. tostring(e.project):lower()
       local n   = ((cycleNext[key] or 0) % #e.wids) + 1
       cycleNext[key] = n
-      focusTerminalWindow(e.wids[n])
-      pcall(draw)
+      traceClick(elementId, via or "?", e.sid)
+      -- Switch Desktop FIRST, verified (D99). Raising the window alone relied
+      -- on `activate` taking us to the right Desktop, and with Terminal windows
+      -- on several Desktops macOS picks one itself — not necessarily this one.
+      -- The raise waits for the switch, as the icon click does.
+      if e.sid then
+        gotoSpaceVerified(e.sid)
+        local w = e.wids[n]
+        termTimer = hs.timer.doAfter(M.iconFocusDelay or 0.45, function()
+          focusTerminalWindow(w); pcall(draw)
+        end)
+      else
+        focusTerminalWindow(e.wids[n])
+        pcall(draw)
+      end
     end
     return
   end
   local sid = tonumber(elementId:match("^go:(%-?%d+)$") or "")
-  if sid then gotoSpaceVerified(sid); return end
+  if sid then traceClick(elementId, via or "?", sid); gotoSpaceVerified(sid); return end
   local wid = tonumber(elementId:match("^term:(%d+)$") or "")
   if wid then focusTerminalWindow(wid); pcall(draw); return end
   -- A session running inside an editor (D85): its window is not Terminal's, so
@@ -3092,7 +3136,7 @@ local function endDrag(commit)
   if d.moved then
     pcall(M.saveLayout)                  -- remember where it was put
   elseif commit then
-    activateElement(d.elementId)         -- never moved: it was a click
+    activateElement(d.elementId, d.via or "tap-up")   -- never moved: it was a click
   end
 end
 
@@ -3180,8 +3224,16 @@ local function onMouse(cv, message, elementId)
   elseif message == "mouseUp" then
     -- When dragging is on, the event tap decides click-vs-drag; it also catches
     -- a release that lands after the pointer has left the panel.
+    -- But a light trackpad tap can release before mouseDown's handler has even
+    -- started the tap, and then the tap never sees it: the click is lost and the
+    -- drag stays armed (D99). So a release on the canvas closes a drag that has
+    -- not moved — whichever of the two sees the release first acts, once.
+    if drag and not drag.moved then
+      drag.via = "canvas-up"
+      endDrag(true); return
+    end
     if M.draggable or drag then return end
-    activateElement(elementId)
+    activateElement(elementId, "canvas")
   end
 end
 

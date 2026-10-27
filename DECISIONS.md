@@ -1695,3 +1695,34 @@ change tense to stand alone.
   command Claude Code moves to the background, and which then hangs, keeps it lit — found
   the same day: a `cat` with an empty argument list waiting on stdin since 2026-10-26 held
   `OPeNDAP-NSF-proposal-2026` pink after its session had finished.
+
+### D99. A session-line click switches Desktop first; a tap the event tap missed is completed from the canvas; every click is traced
+- **Decision:** three changes to the click path, `v68`.
+  1. A click on a session line (`cyc:`) calls `gotoSpaceVerified(e.sid)` and raises the
+     terminal window 0.45 s later. Before, it only ran AppleScript `activate` +
+     `set index of window`, with nothing checking which Desktop it landed on.
+  2. A canvas `mouseUp` that arrives while a drag is armed and has not moved ends it as a
+     click (`endDrag(true)`). Whichever of the event tap and the canvas sees the release
+     first acts; the other finds `drag` nil and does nothing.
+  3. Every `cyc:` and `go:` click appends one line to `M.clickLogFile`
+     (`~/.hammerspoon/desktop_dashboard_clicks.log`): element, which release decided it
+     (`tap-up` / `canvas-up` / `canvas`), target Space, the Space active 1.5 s later, and
+     `OK` or `WRONG`.
+- **Why:** Peter, 2026-10-27: "a light tap, but definitely a tap, on a claude project in the
+  switchboard does not always go to the selected project". Not reproduced: a test would
+  have had to take over his pointer and switch his Desktops.
+  **(1) is inferred from the code.** `activate` lets macOS choose which of Terminal's
+  Desktops to show, and Terminal has windows on several. The `go:` path stopped trusting
+  `gotoSpace` in D88 after measuring 2 failures in 8; the session-line path never got the
+  same check.
+  **(2) is also inferred.** The tap that tells click from drag (`dragTap`) is created inside
+  the `mouseDown` handler. A tap-to-click release can come almost at once and may already
+  be past the tap's insertion point by then. If so, the click is lost and the drag stays
+  armed.
+  **(3) is there to answer which of these, if either, it was.** The next failure leaves a
+  record.
+- **Where:** `desktop_dashboard.lua` — `traceClick`, `activateElement` (the `cyc:` and `go:`
+  branches, and its new `via` argument), `onMouse`'s `mouseUp` branch, `endDrag`.
+- **Live tension:** neither cause is confirmed. If (2) were common, a missed release would
+  also leave the panel following the pointer (`dragTap` listens to `mouseMoved`), and
+  that has not been reported. The trace file grows without a bound, at one line per click.
