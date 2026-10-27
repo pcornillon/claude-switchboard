@@ -281,6 +281,11 @@ line (`v58`–`v59`); the click that raises its window (`v61`); **`gotoSpace` fa
 
 **Where to pick up:**
 
+0. **Task #26, blocked on Peter (2026-10-27, `v68`).** Taps on a session line sometimes
+   miss their project. Two inferred causes fixed (D99), and every click is now traced to
+   `~/.hammerspoon/desktop_dashboard_clicks.log`. Read that log after a day of use. Any
+   `WRONG` line, or a remembered missed tap that has no line, says which cause it was.
+
 1. **Watch D83 for a day.** The `SessionStart` hook has thrown off two bugs already — invisible
    new sessions, then Claude Code's own daemon appearing as `T#` lines. Both fixed; a third
    would not be a surprise.
