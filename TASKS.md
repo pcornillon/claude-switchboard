@@ -811,3 +811,12 @@ session `bc86c646`. From `~/.hammerspoon/claude_state/trace.log`:
 
 The trace printed the hook's argument, `done`, not the state it wrote; the conversion now
 runs before the trace, so it prints `background`.
+
+## Task #25 — The background-work dot in pink, not blue (D98, revises #24)
+
+Status: done (2026-10-27)
+
+Peter, 2026-10-27: blue and green are hard to tell apart. Now pink, `v67`.
+
+**Verified:** `v67` loaded in Hammerspoon; panel photographed with the pink dot on
+Desktop 12 beside a red dot on Desktop 4 and green dots elsewhere.

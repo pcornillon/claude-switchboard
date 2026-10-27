@@ -75,7 +75,7 @@
 ============================================================]]--
 
 local M = {}
-M.version = "v66 (a blue dot for a session whose turn ended with background work still running, D97, 2026-10-12)"
+M.version = "v67 (the background-work dot is pink, not blue, D98, 2026-10-27)"
 
 -- ============================ CONFIG ============================
 
@@ -176,7 +176,7 @@ M.claudeWaitingMaxAgeHours = 3
 -- A LONGER BOUND FOR `background` (D97). The file is written once, at the Stop
 -- that left the work running, and nothing touches it until that work wakes the
 -- session — so a 26-hour run (MODIS_L2, 2026-09-08) would outlive the 12 hours
--- above and lose its dot half-way. A session killed mid-run holds the blue dot
+-- above and lose its dot half-way. A session killed mid-run holds the pink dot
 -- this long; that is the price, and it is a dot, not a red one.
 M.claudeBackgroundMaxAgeHours = 48
 
@@ -252,11 +252,13 @@ M.claudeDotColors  = {
   working = { red = 1.00, green = 0.78, blue = 0.20, alpha = 1 },   -- yellow: computing
   waiting = { red = 1.00, green = 0.28, blue = 0.26, alpha = 1 },   -- red: wants you
   done    = { red = 0.30, green = 0.85, blue = 0.40, alpha = 1 },   -- green: finished, unseen
-  -- Blue: the turn ended, but work it started is still running and will wake the
+  -- Pink: the turn ended, but work it started is still running and will wake the
   -- session when it finishes (D97). Not green, because nothing has finished; not
   -- yellow, because nothing is computing in front of you. Unlike green it is not
   -- cleared by looking — it is a fact about the session, not an acknowledgement.
-  background = { red = 0.35, green = 0.55, blue = 1.00, alpha = 1 },
+  -- Pink, not the blue D97 chose: at dot size blue and green were hard to tell
+  -- apart (D98). Kept light so it does not read as red.
+  background = { red = 1.00, green = 0.60, blue = 0.80, alpha = 1 },
 }
 
 -- GIT STATUS DOT — a second dot, right after the Claude dot, on every panel line
@@ -1076,7 +1078,7 @@ end
 -- three. Order follows window id, so the lines keep their places across polls.
 --
 -- The group's dot follows sessionEntries exactly: yellow if any of its sessions
--- is computing, red if the hooks say that repo is waiting on you, blue if a turn
+-- is computing, red if the hooks say that repo is waiting on you, pink if a turn
 -- there ended with background work still running (D97), green if one finished
 -- and you have not looked at it.
 local function sessionGroupsFor(sid)

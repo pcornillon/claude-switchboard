@@ -1677,3 +1677,21 @@ change tense to stand alone.
   for up to 48 hours. And like red, blue is joined to a Terminal window by **repo**, so a
   second session in the same repo shows blue too. An older Claude Code sends no
   `background_tasks` and gets green, exactly as before.
+
+### D98. The background-work dot is pink, not blue
+- **Decision:** `M.claudeDotColors.background` is a light pink, `{1.00, 0.60, 0.80}`, in
+  place of D97's blue. Everything else in D97 — what sets it, its priority
+  (yellow → red → pink → green), its 48-hour bound — is unchanged.
+- **Why:** Peter, 2026-10-27: at dot size he could not reliably tell D97's blue from the
+  green "finished, unseen" dot, and those are the two that most need telling apart — one
+  says a result is still coming, the other that it has arrived. Pink was his choice. Kept
+  light, not saturated, so it does not read as the red "wants you" dot; photographed
+  2026-10-27 with a pink and a red dot on the panel at once (Desktops 12 and 4), and the
+  two are distinct. It is near the magenta of the active Desktop's name
+  (`M.activeColor`), but that colours text, never a dot.
+- **Where:** `desktop_dashboard.lua` — `M.claudeDotColors.background`; `README.md` (the dot
+  table) and `INSTALL.md` name the colour. `v67`.
+- **Live tension:** the dot is still only as truthful as the `Stop` payload. A foreground
+  command Claude Code moves to the background, and which then hangs, keeps it lit — found
+  the same day: a `cat` with an empty argument list waiting on stdin since 2026-10-26 held
+  `OPeNDAP-NSF-proposal-2026` pink after its session had finished.

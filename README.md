@@ -111,7 +111,7 @@ changes.
 **For Claude sessions**
 
 - **A colored dot per session** — yellow while it computes, red when it's blocked asking
-  you something, blue when its turn ended with a background job still running, green when
+  you something, pink when its turn ended with a background job still running, green when
   it finished while you were elsewhere. See
   [the dot](#the-claude-session-dot).
 - **Works for Desktops you aren't looking at.** macOS won't let an app read the windows of
@@ -290,11 +290,11 @@ colored dot between the Desktop number and the arrow:
 |-----|---------|------------------------|
 | 🟡 yellow | that session is working | no |
 | 🔴 red | it has stopped to ask you something | **yes** |
-| 🔵 blue | its turn ended, but work it started is still running in the background | **yes** |
+| 🩷 pink | its turn ended, but work it started is still running in the background | **yes** |
 | 🟢 green | it finished and you haven't looked yet | no |
 | *(none)* | nothing to tell you | — |
 
-Order of priority is **yellow → red → blue → green**. Working always wins, so the instant you
+Order of priority is **yellow → red → pink → green**. Working always wins, so the instant you
 answer a question the dot goes straight back to yellow.
 
 **Green means "finished, unseen", not merely "idle".** It appears on the working →
